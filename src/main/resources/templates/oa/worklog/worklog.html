@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('工作日志列表')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <p>创建人：</p>
+                                <input type="text" name="createUserName"/>
+                            </li>
+                            <li>
+                                <p>工作类型：</p>
+                                <select name="workType" th:with="type=${@dict.getType('oa_work_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>开始时间：</p>
+                                <!--<input name="cStartTime" class="time-input" readonly type="text" placeholder="请选择开始日期">-->
+                                <input type="text" id="startTime" name="cStartTime" class="form-control" placeholder="请选择开始时间" readonly required>
+                            </li>
+                            <li>
+                                <p>截止时间：</p>
+                                <!--<input name="cEndTime" class="time-input" readonly type="text" placeholder="请选择截止日期">-->
+                                <input type="text" id="endTime" name="cEndTime" class="form-control" placeholder="请选择开始时间" readonly required>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="oa:worklog:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <!--<a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="oa:worklog:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="oa:worklog:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>-->
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="oa:worklog:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+     <th:block th:include="include :: datetimepicker-js" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('oa:worklog:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('oa:worklog:remove')}]];
+        var workTypeDatas = [[${@dict.getType('oa_work_type')}]];
+        var prefix = ctx + "oa/worklog";
+        var work_prefix = ctx + "oa/work";
+
+        $(function() {
+            $("#startTime").datetimepicker();
+            $("#endTime").datetimepicker();
+
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "工作日志",
+                search: false,
+                showSearch:false,
+                showColumns:false,
+                showExport:false,
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field : 'oaWorklogId', 
+                    title : '主键',
+                    visible: false
+                },
+                {
+                    field : 'createUserName',
+                    title : '创建人'
+                },
+                {
+                    field : 'workType', 
+                    title : '工作类型',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(workTypeDatas, value);
+                    }
+
+                },
+                // {
+                //     field : 'workDate',
+                //     title : '工作日期'
+                // },
+                {
+                    field : 'startTime', 
+                    title : '工作时间段',
+                    formatter: function(value, row, index) {
+                        return row.startTime + " ~ " + row.endTime;
+                    }
+                },
+                {
+                    field : 'createTime',
+                    title : '创建时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        var title = "修改工作日志";
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editWork(\'' + title + '\', \'' + row.createUserId + '\', \'' + '/oa/worklog/edit/' + row.oaWorklogId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="deleteWork(\'' + row.oaWorklogId + '\', \'' + row.createUserId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+
+        function editWork(title, sponsorId, url){
+            $.ajax({
+                url: work_prefix + "/isAuthorityOperate",
+                type:"get",
+                data:{sponsorId:sponsorId},
+                dataType:"json",
+                success:function(data){
+                    if (data.code == 0) {
+                        $.modal.open(title, url);
+                    } else {
+                        $.modal.alertWarning("您无权操作这条数据");
+                    }
+
+                }
+            });
+
+        }
+
+        function deleteWork(oaTaskId, sponsorId){
+            $.ajax({
+                url: work_prefix + "/isAuthorityOperate",
+                type:"get",
+                data:{sponsorId:sponsorId},
+                dataType:"json",
+                success:function(data){
+                    if (data.code == 0) {
+                        $.operate.remove(oaTaskId)
+                    } else {
+                        $.modal.alertWarning("您无权操作这条数据");
+                    }
+
+                }
+            });
+
+        }
+    </script>
+</body>
+</html>

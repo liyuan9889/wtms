@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('用户列表')" />
+    <th:block th:include="include :: layout-latest-css" />
+    <th:block th:include="include :: ztree-css" />
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body class="gray-bg">
+<div class="ui-layout-west">
+    <div class="box box-main">
+        <div class="box-header">
+            <div class="box-title">
+                <i class="fa icon-grid"></i> 组织机构
+            </div>
+            <div class="box-tools pull-right">
+                <a type="button" class="btn btn-box-tool" href="#" onclick="dept()" title="管理组织"><i class="fa fa-edit"></i></a>
+                <button type="button" class="btn btn-box-tool" id="btnExpand" title="展开" style="display:none;"><i class="fa fa-chevron-up"></i></button>
+                <button type="button" class="btn btn-box-tool" id="btnCollapse" title="折叠"><i class="fa fa-chevron-down"></i></button>
+                <button type="button" class="btn btn-box-tool" id="btnRefresh" title="刷新组织"><i class="fa fa-refresh"></i></button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <div class="ui-layout-content">
+                    <div id="tree" class="ztree"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ui-layout-center">
+    <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="form1">
+                    <div style="float: left">
+                    <input type="hidden" id="deptId" value="100" name="deptId">
+                    <input type="hidden" id="parentId" >
+                    <input type="hidden" id="searchType" value="1">
+                    <button id="searchWeek" type="button" class="btn btn-xs-large btn-white  active" onclick="queryStatisticsBySearchType(1)">督办统计</button>&nbsp;&nbsp;
+                    <button id="searchMonth" type="button" class="btn btn-xs-large btn-white " onclick="queryStatisticsBySearchType(2)">工作汇报</button>&nbsp;&nbsp;
+                    <button id="searchYear" type="button" class="btn btn-xs-large btn-white " onclick="queryStatisticsBySearchType(3)">班组日志统计</button>
+                    </div>
+                    <div style="float: left; ">
+                        <div style="float: left; padding-top: 6px;padding-left: 25px"><p>开始日期：</p></div>
+                        <div style="float: left">
+                            <div class="select-list" style="margin-top: -5px">
+                                <ul>
+                                    <li>
+                                        <input id="cStartTime" name="cStartTime" class="time-input" readonly type="text" placeholder="请选择开始日期">
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div style="float: left; padding-top: 6px;padding-left: 5px"><p>截止日期：</p></div>
+                        <div style="float: left">
+                            <div class="select-list" style="margin-top: -5px">
+                                <ul>
+                                    <li>
+                                        <input id="cEndTime" name="cEndTime" class="time-input" readonly type="text" placeholder="请选择截止日期">
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div style="float: left">
+                            <div class="select-list" style="margin-top: -5px">
+                                <ul>
+                                    <li>
+                                        <a class="btn btn-warning btn-sm" onclick="resetTimeSection();"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row" style="margin-top: -700px;">
+            <div id="container1" style="height: 100%"></div>
+        </div>
+        <div class="row">
+            <div id="table1Div" class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table1"></table>
+            </div>
+            <div id="table2Div" class="col-sm-12 select-table table-striped" style="display: none">
+                <table id="bootstrap-table2"></table>
+            </div>
+            <div id="table3Div" class="col-sm-12 select-table table-striped" style="display: none">
+                <table id="bootstrap-table3"></table>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: layout-latest-js" />
+<th:block th:include="include :: ztree-js" />
+<script th:src="@{/echarts/echarts.min.js}"></script>
+<script th:src="@{/js/statistics/statistics.js}"></script>
+<script th:inline="javascript">
+    var prefix = ctx + "oa/statistics";
+    var task_prefix = ctx + "oa/task";
+    var work_prefix = ctx + "oa/work";
+    var worklog_prefix = ctx + "oa/worklog";
+    var sourceTypeDatas = [[${@dict.getType('oa_source_type')}]];
+    var statusDatas = [[${@dict.getType('oa_task_status')}]];
+    var importantLevelDatas = [[${@dict.getType('oa_important_level')}]];
+    var difficultLevelDatas = [[${@dict.getType('oa_difficult_level')}]];
+    var isTeamDatas = [[${@dict.getType('oa_is_team')}]];
+    var workTypeDatas = [[${@dict.getType('oa_work_type')}]];
+    var searchFlag = 1;
+    var title = '督办统计';
+
+    $(function() {
+        var panehHidden = false;
+        if ($(this).width() < 769) {
+            panehHidden = true;
+        }
+        $('body').layout({ initClosed: panehHidden, west__size: 185 });
+        queryDeptTree();
+        // 初始化列表数据
+        queryStatisticsInit(title, searchFlag);
+
+        window.setTimeout(function(){
+            $("#btnExpand").click();
+        }, 300)
+    });
+
+    function queryDeptTree()
+    {
+        var url = ctx + "system/dept/treeData";
+        var options = {
+            url: url,
+            expandLevel: 2,
+            onClick : zOnClick
+        };
+        $.tree.init(options);
+
+        function zOnClick(event, treeId, treeNode) {
+            $("#deptId").val(treeNode.id);
+            $("#parentId").val(treeNode.pId);
+            var deptName = treeNode.name;
+            if (searchFlag == 1) {
+                $.table.search('form1', 'bootstrap-table1');
+            } else if (searchFlag == 2) {
+                $.table.search('form1', 'bootstrap-table2');
+            } else if (searchFlag == 3) {
+                $.table.search('form1', 'bootstrap-table3');
+            }
+            queryStatisticsInit(title, searchFlag);
+        }
+    }
+
+    function queryStatisticsBySearchType(searchType) {
+        if (searchType == 1){
+            $("#table1Div").css("display", "block");
+            $("#table2Div").css("display", "none");
+            $("#table3Div").css("display", "none");
+            $("#searchWeek").addClass("active");
+            $("#searchMonth").removeClass("active");
+            $("#searchYear").removeClass("active");
+            $.table.search('form1', 'bootstrap-table1');
+            title = '督办统计';
+        } else if (searchType == 2){
+            $("#table1Div").css("display", "none");
+            $("#table2Div").css("display", "block");
+            $("#table3Div").css("display", "none");
+            $("#searchWeek").removeClass("active");
+            $("#searchMonth").addClass("active");
+            $("#searchYear").removeClass("active");
+            $.table.search('form1', 'bootstrap-table2');
+            title = '工作汇报';
+        } else if (searchType == 3){
+            $("#table1Div").css("display", "none");
+            $("#table2Div").css("display", "none");
+            $("#table3Div").css("display", "block");
+            $("#searchWeek").removeClass("active");
+            $("#searchMonth").removeClass("active");
+            $("#searchYear").addClass("active");
+            $.table.search('form1', 'bootstrap-table3');
+            title = '班组日志统计';
+        }
+        searchFlag = searchType;
+        $("#searchType").val(searchType);
+        queryStatisticsInit(title, searchFlag);
+    }
+
+    $(function() {
+        var options = {
+            id: "bootstrap-table1",
+            url: task_prefix + "/list",
+            createUrl: task_prefix + "/add",
+            detailUrl: task_prefix + "/detail/{id}",
+            updateUrl: task_prefix + "/edit/{id}",
+            removeUrl: task_prefix + "/remove",
+            exportUrl: task_prefix + "/export",
+            modalName: "任务督办",
+            search: false,
+            showSearch:false,
+            showColumns:false,
+            showExport:false,
+            columns: [
+                {
+                    field : 'oaTaskId',
+                    title : '主键',
+                    visible: false
+                },
+                {
+                    field : 'taskName',
+                    title : '任务名称'
+                },
+                {
+                    field : 'importantLevel',
+                    title : '重要程度',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(importantLevelDatas, value);
+                    }
+                },
+                {
+                    field : 'difficultLevel',
+                    title : '困难程度',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(difficultLevelDatas, value);
+                    }
+                },
+                {
+                    field : 'startDate',
+                    title : '开始日期'
+                },
+                {
+                    field : 'endDate',
+                    title : '截止日期'
+                },
+                {
+                    field : 'isTeam',
+                    title : '集体措施',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(isTeamDatas, value);
+                    }
+                },
+                {
+                    field : 'sourceType',
+                    title : '来源',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(sourceTypeDatas, value);
+                    }
+                },
+                // {
+                //     field : 'sponsorName',
+                //     title : '下发人'
+                // },
+                // {
+                //     field : 'executorName',
+                //     title : '负责人'
+                // },
+                {
+                    field : 'appraiserName',
+                    title : '评价人'
+                },
+                {
+                    field : 'status',
+                    title : '状态',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(statusDatas, value);
+                    }
+                },
+                {
+                    field : 'createTime',
+                    title : '创建时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.operate.detail(\'' + row.oaTaskId + '\', \'' + 1200 + '\')"><i class="fa fa-search"></i>查看详情</a> ');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    $(function() {
+        var options = {
+            id: "bootstrap-table2",
+            url: work_prefix + "/list",
+            createUrl: work_prefix + "/add",
+            detailUrl: work_prefix + "/detail/{id}",
+            updateUrl: work_prefix + "/edit/{id}",
+            removeUrl: work_prefix + "/remove",
+            exportUrl: work_prefix + "/export",
+            modalName: "工作汇报",
+            search: false,
+            showSearch:false,
+            showColumns:false,
+            showExport:false,
+            columns: [
+                {
+                    field : 'deptName',
+                    title : '组织'
+                },
+                {
+                    field : 'workName',
+                    title : '任务名称'
+                },
+                {
+                    field : 'importantLevel',
+                    title : '重要程度',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(importantLevelDatas, value);
+                    }
+                },
+                {
+                    field : 'difficultLevel',
+                    title : '困难程度',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(difficultLevelDatas, value);
+                    }
+                },
+                {
+                    field : 'startDate',
+                    title : '开始日期'
+                },
+                {
+                    field : 'endDate',
+                    title : '截止日期'
+                },
+                {
+                    field : 'sourceType',
+                    title : '来源',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(sourceTypeDatas, value);
+                    }
+                },
+                {
+                    field : 'userName',
+                    title : '创建人'
+                },
+                {
+                    field : 'progress',
+                    title : '进度',
+                    formatter: function(value, row, index) {
+                        return value + "%";
+                    }
+                },
+                {
+                    field : 'statusDescribe',
+                    title : '状态'
+                },
+                {
+                    field : 'createTime',
+                    title : '创建时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.operate.detail(\'' + row.oaWorkId + '\', \'' + 1200 + '\')"><i class="fa fa-search"></i>查看详情</a> ');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    $(function() {
+        var options = {
+            id: "bootstrap-table3",
+            url: worklog_prefix + "/list",
+            createUrl: worklog_prefix + "/add",
+            detailUrl: worklog_prefix + "/detail/{id}",
+            updateUrl: worklog_prefix + "/edit/{id}",
+            removeUrl: worklog_prefix + "/remove",
+            exportUrl: worklog_prefix + "/export",
+            modalName: "工作日志",
+            search: false,
+            showSearch:false,
+            showColumns:false,
+            showExport:false,
+            columns: [
+                {
+                    field : 'createUserName',
+                    title : '创建人'
+                },
+                {
+                    field : 'workType',
+                    title : '工作类型',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(workTypeDatas, value);
+                    }
+
+                },
+                // {
+                //     field : 'workDate',
+                //     title : '工作日期'
+                // },
+                {
+                    field : 'startTime',
+                    title : '工作时间段',
+                    formatter: function(value, row, index) {
+                        return row.startTime + "~" + row.endTime;
+                    }
+                },
+                {
+                    field : 'addrContent',
+                    title : '工作地点/内容'
+                },
+                {
+                    field : 'createTime',
+                    title : '创建时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.operate.detail(\'' + row.oaWorklogId + '\', \'' + 1200 + '\')"><i class="fa fa-search"></i>查看详情</a> ');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+
+    $('#btnExpand').click(function() {
+        $._tree.expandAll(true);
+        $(this).hide();
+        $('#btnCollapse').show();
+    });
+
+    $('#btnCollapse').click(function() {
+        $._tree.expandAll(false);
+        $(this).hide();
+        $('#btnExpand').show();
+    });
+
+    $('#btnRefresh').click(function() {
+        queryDeptTree();
+    });
+
+    function resetTimeSection() {
+        window.location.reload();
+    }
+
+</script>
+</body>
+</html>

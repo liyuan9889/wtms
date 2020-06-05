@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html  lang="zh" xmlns:th="http://www.thymeleaf.org">
+<meta charset="utf-8">
+<head>
+	<th:block th:include="include :: header('任务终结')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-reason-add">
+
+			<input id="oaTaskId" name="oaTaskId"  th:value="${oaTaskId}" class="form-control" type="hidden">
+			<input id="status" name="status"  th:value="5" class="form-control" type="hidden">
+			<textarea id="overReason" type="text" name="overReason"
+					  rows="10" cols="50" class="form-control" placeholder="请说明终结的原因" maxlength="50"></textarea>
+		</form>
+	</div>
+    <div th:include="include::footer"></div>
+    <script type="text/javascript">
+		var prefix = ctx + "oa/task";
+		$("#form-reason-add").validate({
+			rules:{
+				overReason:{
+					required:true,
+                    minlength: 1,
+                    maxlength: 100,
+				},
+			},
+			messages:{
+				overReason: "请说明终结的原因",
+			}
+		});
+
+		function submitHandler() {
+	        if ($.validate.form()) {
+	            $.operate.save(prefix + "/edit", $('#form-reason-add').serialize());
+	        }
+	    }
+	</script>
+</body>
+</html>

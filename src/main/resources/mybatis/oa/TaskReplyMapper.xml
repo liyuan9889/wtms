@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.TaskReplyMapper">
+    
+    <resultMap type="TaskReply" id="TaskReplyResult">
+        <result property="oaTaskReplyId"    column="oa_task_reply_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="content"    column="content"    />
+        <result property="progress"    column="progress"    />
+        <result property="hours"    column="hours"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTaskReplyVo">
+        select oa_task_reply_id, task_id, user_id, user_name, content, progress, hours, create_time, update_time from oa_task_reply
+    </sql>
+
+    <select id="selectTaskReplyList" parameterType="TaskReply" resultMap="TaskReplyResult">
+        <include refid="selectTaskReplyVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="userName != null  and userName != ''"> and user_name like concat('%', #{userName}, '%')</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+            <if test="progress != null "> and progress = #{progress}</if>
+            <if test="hours != null  and hours != ''"> and hours = #{hours}</if>
+        </where>
+    </select>
+    
+    <select id="selectTaskReplyById" parameterType="Long" resultMap="TaskReplyResult">
+        <include refid="selectTaskReplyVo"/>
+        where oa_task_reply_id = #{oaTaskReplyId}
+    </select>
+        
+    <insert id="insertTaskReply" parameterType="TaskReply" useGeneratedKeys="true" keyProperty="oaTaskReplyId">
+        insert into oa_task_reply
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null ">task_id,</if>
+            <if test="userId != null ">user_id,</if>
+            <if test="userName != null  and userName != ''">user_name,</if>
+            <if test="content != null  and content != ''">content,</if>
+            <if test="progress != null ">progress,</if>
+            <if test="hours != null  and hours != ''">hours,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null ">#{taskId},</if>
+            <if test="userId != null ">#{userId},</if>
+            <if test="userName != null  and userName != ''">#{userName},</if>
+            <if test="content != null  and content != ''">#{content},</if>
+            <if test="progress != null ">#{progress},</if>
+            <if test="hours != null  and hours != ''">#{hours},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTaskReply" parameterType="TaskReply">
+        update oa_task_reply
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null ">task_id = #{taskId},</if>
+            <if test="userId != null ">user_id = #{userId},</if>
+            <if test="userName != null  and userName != ''">user_name = #{userName},</if>
+            <if test="content != null  and content != ''">content = #{content},</if>
+            <if test="progress != null ">progress = #{progress},</if>
+            <if test="hours != null  and hours != ''">hours = #{hours},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_task_reply_id = #{oaTaskReplyId}
+    </update>
+
+    <delete id="deleteTaskReplyById" parameterType="Long">
+        delete from oa_task_reply where oa_task_reply_id = #{oaTaskReplyId}
+    </delete>
+
+    <delete id="deleteTaskReplyByIds" parameterType="String">
+        delete from oa_task_reply where oa_task_reply_id in 
+        <foreach item="oaTaskReplyId" collection="array" open="(" separator="," close=")">
+            #{oaTaskReplyId}
+        </foreach>
+    </delete>
+    
+</mapper>

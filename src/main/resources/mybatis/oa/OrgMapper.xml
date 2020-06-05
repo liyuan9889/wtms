@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.OrgMapper">
+
+	<resultMap type="Org" id="OrgResult">
+		<id     property="oaOrgId"     column="oa_org_id"     />
+		<result property="parentId"   column="parent_id"   />
+		<result property="ancestors"  column="ancestors"   />
+		<result property="orgName"  column="org_name"   />
+		<result property="orderNum"   column="order_num"   />
+		<result property="delFlag"    column="del_flag"    />
+		<result property="createTime"    column="create_time"    />
+		<result property="updateTime"    column="update_time"    />
+	</resultMap>
+	
+	<sql id="selectOrgVo">
+        select o.oa_org_id, o.parent_id, o.ancestors, o.org_name, o.order_num, del_flag,
+        create_time, update_time from oa_org o
+    </sql>
+
+	<select id="selectOrgById" parameterType="Long" resultMap="OrgResult">
+		<include refid="selectOrgVo"/>
+		where oa_org_id = #{oaOrgId} and del_flag=0
+	</select>
+
+	<select id="selectMaxOrderNum" resultType="java.lang.Integer" >
+		SELECT MAX(order_num) as order_num FROM oa_org WHERE del_flag=0;
+	</select>
+    
+	<select id="selectOrgList" parameterType="Org" resultMap="OrgResult">
+        <include refid="selectOrgVo"/>
+		<where>
+			o.del_flag = '0'
+			<if test="parentId != null "> and parent_id = #{parentId}</if>
+			<if test="ancestors != null  and ancestors != ''"> and ancestors = #{ancestors}</if>
+			<if test="orgName != null  and orgName != ''"> and org_name like concat('%', #{orgName}, '%')</if>
+			<if test="orderNum != null "> and order_num = #{orderNum}</if>
+		</where>
+		order by o.parent_id, o.order_num
+    </select>
+
+	<insert id="insertOrg" parameterType="Org" useGeneratedKeys="true" keyProperty="oaOrgId">
+		insert into oa_org
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="parentId != null ">parent_id,</if>
+			<if test="ancestors != null  and ancestors != ''">ancestors,</if>
+			<if test="orgName != null  and orgName != ''">org_name,</if>
+			<if test="orderNum != null ">order_num,</if>
+			<if test="delFlag != null ">del_flag,</if>
+			<if test="createTime != null ">create_time,</if>
+			<if test="updateTime != null ">update_time,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="parentId != null ">#{parentId},</if>
+			<if test="ancestors != null  and ancestors != ''">#{ancestors},</if>
+			<if test="orgName != null  and orgName != ''">#{orgName},</if>
+			<if test="orderNum != null ">#{orderNum},</if>
+			<if test="delFlag != null ">#{delFlag},</if>
+			<if test="createTime != null ">#{createTime},</if>
+			<if test="updateTime != null ">#{updateTime},</if>
+		</trim>
+	</insert>
+
+	<update id="updateOrg" parameterType="Org">
+		update oa_org
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="parentId != null ">parent_id = #{parentId},</if>
+			<if test="ancestors != null  and ancestors != ''">ancestors = #{ancestors},</if>
+			<if test="orgName != null  and orgName != ''">org_name = #{orgName},</if>
+			<if test="orderNum != null ">order_num = #{orderNum},</if>
+			<if test="delFlag != null ">del_flag = #{delFlag},</if>
+			<if test="createTime != null ">create_time = #{createTime},</if>
+			<if test="updateTime != null ">update_time = #{updateTime},</if>
+		</trim>
+		where oa_org_id = #{oaOrgId}
+	</update>
+
+	<delete id="deleteOrgById" parameterType="Long">
+        delete from oa_org where oa_org_id = #{oaOrgId}
+    </delete>
+
+	<update id="updateOrgByIds" parameterType="String">
+		UPDATE oa_org set del_flag=1 WHERE oa_org_id in
+		<foreach item="oaOrgId" collection="array" open="(" separator="," close=")">
+			#{oaOrgId}
+		</foreach>
+	</update>
+
+	<delete id="deleteOrgByIds" parameterType="String">
+		delete from oa_org where oa_org_id in
+		<foreach item="oaOrgId" collection="array" open="(" separator="," close=")">
+			#{oaOrgId}
+		</foreach>
+	</delete>
+
+</mapper> 

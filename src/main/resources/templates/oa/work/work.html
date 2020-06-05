@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('工作汇报列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <p>来源：</p>
+                                <select name="sourceType" th:with="type=${@dict.getType('oa_source_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>组织：</p>
+                                <select id="deptId" onchange="getSubDeptEmp()" name="deptId">
+                                </select>
+                            </li>
+                            <li>
+                                <p>任务名称：</p>
+                                <input type="text" name="workName"/>
+                            </li>
+                            <!--<li>
+                                <p>重要程度：</p>
+                                <select name="importantLevel" th:with="type=${@dict.getType('oa_important_level')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>困难程度：</p>
+                                <select name="difficultLevel" th:with="type=${@dict.getType('oa_difficult_level')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>-->
+                            <li>
+                                <p>开始日期：</p>
+                                <input name="cStartTime" class="time-input" readonly type="text" placeholder="请选择开始日期">
+                            </li>
+                            <li>
+                                <p>截止日期：</p>
+                                <input name="cEndTime" class="time-input" readonly type="text" placeholder="请选择截止日期">
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.modal.open('添加工作汇报', '/oa/work/add', 1200);" shiro:hasPermission="oa:work:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <!--<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="oa:work:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>-->
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="oa:work:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('oa:work:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('oa:work:remove')}]];
+        var sourceTypeDatas = [[${@dict.getType('oa_source_type')}]];
+        var importantLevelDatas = [[${@dict.getType('oa_important_level')}]];
+        var difficultLevelDatas = [[${@dict.getType('oa_difficult_level')}]];
+        var prefix = ctx + "oa/work";
+        var dept_prefix = ctx + "system/dept";
+        var userId = [[${userId}]];
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "工作汇报",
+                search: false,
+                showSearch:false,
+                showColumns:false,
+                showExport:false,
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field : 'oaWorkId',
+                    title : '主键',
+                    visible: false
+                },
+                {
+                    field : 'deptName',
+                    title : '组织'
+                },
+                {
+                    field : 'workName',
+                    title : '任务名称'
+                },
+                // {
+                //     field : 'importantLevel',
+                //     title : '重要程度',
+                //     formatter: function(value, row, index) {
+                //         return $.table.selectDictLabel(importantLevelDatas, value);
+                //     }
+                // },
+                // {
+                //     field : 'difficultLevel',
+                //     title : '困难程度',
+                //     formatter: function(value, row, index) {
+                //         return $.table.selectDictLabel(difficultLevelDatas, value);
+                //     }
+                // },
+                {
+                    field : 'startDate', 
+                    title : '开始日期'
+                },
+                {
+                    field : 'endDate', 
+                    title : '截止日期'
+                },
+                {
+                    field : 'sourceType', 
+                    title : '来源',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(sourceTypeDatas, value);
+                    }
+                },
+                {
+                    field : 'userName',
+                    title : '创建人'
+                },
+                // {
+                //     field : 'progress',
+                //     title : '进度',
+                //     formatter: function(value, row, index) {
+                //         return value + "%";
+                //     }
+                // },
+                {
+                    field : 'statusDescribe',
+                    title : '状态'
+                },
+                {
+                    field : 'createTime',
+                    title : '创建时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        var title = "工作汇报详情";
+                        actions.push('<a class="btn btn-info btn-xs " href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/work/toFeedBack/' + row.oaWorkId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                        var title = "修改工作汇报";
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editWork(\'' + title + '\', \'' + row.sponsorId + '\', \'' + '/oa/work/edit/' + row.oaWorkId + '\', \'' + 1200 + '\')"><i class="fa fa-edit"></i>编辑任务</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="deleteWork(\'' + row.oaWorkId + '\', \'' + row.sponsorId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+
+            // 所属组织
+            $.ajax({
+                url: dept_prefix + "/getDeptListByLoginUser",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $("#deptId").append("<option value=''>请选择</option>");
+                    $.each(data, function (index, item) {
+                        var deptId = data[index].deptId;
+                        var deptName = data[index].deptName;
+                        $("#deptId").append("<option value='"+deptId+"'>"+deptName+"</option>");
+                    });
+                }
+            });
+        });
+
+        function editWork(title, sponsorId, url, width){
+            $.ajax({
+                url: prefix + "/isAuthorityOperate",
+                type:"get",
+                data:{sponsorId:sponsorId},
+                dataType:"json",
+                success:function(data){
+                    if (data.code == 0) {
+                        $.modal.open(title, url, width);
+                    } else {
+                        $.modal.alertWarning("您无权操作这条数据");
+                    }
+
+                }
+            });
+
+        }
+
+        function deleteWork(oaTaskId, sponsorId){
+            $.ajax({
+                url: prefix + "/isAuthorityOperate",
+                type:"get",
+                data:{sponsorId:sponsorId},
+                dataType:"json",
+                success:function(data){
+                    if (data.code == 0) {
+                        $.operate.remove(oaTaskId)
+                    } else {
+                        $.modal.alertWarning("您无权操作这条数据");
+                    }
+
+                }
+            });
+
+        }
+    </script>
+</body>
+</html>

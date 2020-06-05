@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.WorkMapper">
+    
+    <resultMap type="Work" id="WorkResult">
+        <result property="oaWorkId"    column="oa_work_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="deptName"    column="dept_name"    />
+        <result property="workName"    column="work_name"    />
+        <result property="status"    column="status"    />
+        <result property="importantLevel"    column="important_level"    />
+        <result property="difficultLevel"    column="difficult_level"    />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"    column="end_date"    />
+        <result property="isTeam"    column="is_team"    />
+        <result property="sourceType"    column="source_type"    />
+        <result property="sponsorId"    column="sponsor_id"    />
+        <result property="content"    column="content"    />
+        <result property="progress"    column="progress"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="leaderName"    column="leader_name"    />
+
+        <result property="userName"    column="user_name"    />
+        <result property="replyCreateTime"    column="reply_create_time"    />
+        <result property="replyProgress"    column="reply_progress"    />
+        <result property="replyContent"    column="reply_content"    />
+        <result property="searchType"    column="searchType"    />
+        <result property="num"    column="num"    />
+        <result property="statusDescribe"    column="statusDescribe"    />
+        <result property="hours"    column="hours"    />
+    </resultMap>
+
+    <resultMap type="WorkUser" id="WorkUserResult">
+        <result property="workId"    column="work_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="content"    column="content"    />
+        <result property="progress"    column="progress"    />
+        <result property="hours"    column="hours"    />
+    </resultMap>
+
+    <insert id="insertWorkUser" parameterType="WorkUser" useGeneratedKeys="true" keyProperty="workId">
+        insert into oa_work_user (work_id, user_id, content, progress, hours, create_time) values (#{workId}, #{userId},
+        #{content}, #{progress}, #{hours}, sysdate())
+    </insert>
+
+    <select id="selectWorkReplyContentList" parameterType="Work" resultMap="WorkResult">
+        SELECT
+            su.user_name,
+            u.create_time as reply_create_time,
+            u.content as reply_content,
+            IFNULL(u.progress, 0) as reply_progress,
+            u.hours, w.oa_work_id, w.dept_id, w.work_name, w.status, w.important_level, w.difficult_level,
+            w.start_date, w.end_date, w.is_team, w.source_type,
+            w.sponsor_id, w.content, IFNULL(w.progress,0) as progress, w.create_time
+        FROM
+            oa_work w
+        INNER JOIN oa_work_user u ON w.oa_work_id = u.work_id
+        INNER JOIN sys_user su ON u.user_id = su.user_id
+        WHERE
+            u.del_flag = 0
+        AND w.del_flag = 0
+        AND su.del_flag = 0
+        AND w.oa_work_id = #{oaWorkId}
+        ORDER BY u.create_time ASC
+    </select>
+
+    <sql id="selectWorkVo">
+        select oa_work_id, dept_id, work_name, status, important_level, difficult_level, start_date, end_date, is_team, source_type,
+        sponsor_id, content, progress, create_time, update_time from oa_work
+    </sql>
+
+    <select id="selectWorkList" parameterType="Work" resultMap="WorkResult">
+        select IFNULL(x.user_name,'') as leader_name, o.oa_work_id, o.dept_id, o.work_name, o.status,
+        CASE
+            WHEN (o.STATUS = 1 AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(o.end_date, '%Y-%m-%d') ) THEN '进行中'
+            WHEN (o.STATUS = 1 AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt; DATE_FORMAT(o.end_date, '%Y-%m-%d') ) THEN '超期'
+            WHEN o.STATUS = 2 THEN '已完结' ELSE ''
+        END AS statusDescribe,
+        o.important_level, o.difficult_level, o.start_date, o.end_date, o.is_team,
+        o.source_type, o.sponsor_id, o.content, IFNULL(o.progress,0) as progress, o.create_time, o.update_time, d.dept_name, u.user_name from oa_work o LEFT JOIN sys_dept d
+        on o.dept_id=d.dept_id LEFT JOIN sys_user u on o.sponsor_id=u.user_id
+        LEFT JOIN
+        (
+        SELECT GROUP_CONCAT(u.user_name) as user_name, u.dept_id FROM sys_dept d INNER JOIN sys_user u ON d.dept_id=u.dept_id INNER JOIN sys_user_role r ON u.user_id=r.user_id
+        WHERE u.del_flag=0 AND d.del_flag=0 AND r.role_id=3 GROUP BY u.dept_id
+        ) x ON o.dept_id=x.dept_id
+        <if test="deptId != null ">
+            INNER JOIN (
+                SELECT
+                    d.dept_id,
+                    d.dept_name
+                FROM
+                  sys_dept d
+                WHERE
+                  find_in_set(#{deptId}, d.ancestors)
+                AND d.del_flag = 0 OR d.dept_id = #{deptId}
+            ) a ON o.dept_id = a.dept_id
+        </if>
+        <where>
+            u.del_flag=0 and d.del_flag=0
+            <if test="workName != null  and workName != ''"> and o.work_name like concat('%', #{workName}, '%')</if>
+            <if test="userId != null "> and o.sponsor_id = #{userId}</if>
+            <if test="status != null ">
+                and o.status = #{status}
+                <if test="subStatus != null and subStatus == 1"> and DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(o.end_date, '%Y-%m-%d')</if>
+                <if test="subStatus != null and subStatus == 2"> and DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt;  DATE_FORMAT(o.end_date, '%Y-%m-%d')</if>
+            </if>
+            <if test="importantLevel != null "> and o.important_level = #{importantLevel}</if>
+            <if test="difficultLevel != null "> and o.difficult_level = #{difficultLevel}</if>
+            <if test="cStartTime != null and cStartTime != ''">
+                AND o.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if test="cEndTime != null and cEndTime !='' ">
+                AND o.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+            <if test="isTeam != null "> and o.is_team = #{isTeam}</if>
+            <if test="sourceType != null "> and o.source_type = #{sourceType}</if>
+            <if test="content != null  and content != ''"> and o.content = #{content}</if>
+            <if test="progress != null  and progress != ''"> and o.progress = #{progress}</if>
+        </where>
+    </select>
+    
+    <select id="selectWorkById" parameterType="Long" resultMap="WorkResult">
+        select t.oa_work_id, t.dept_id, t.work_name, t.status, t.important_level, t.difficult_level, t.start_date, t.end_date, t.is_team, t.source_type, d.dept_name, u.user_name,
+        t.sponsor_id, t.content, t.progress, t.create_time, t.update_time from oa_work t INNER JOIN sys_dept d ON t.dept_id=d.dept_id INNER JOIN sys_user u ON t.sponsor_id=u.user_id
+        where oa_work_id = #{oaWorkId}
+        AND t.del_flag=0 AND d.del_flag=0 AND u.del_flag=0
+    </select>
+        
+    <insert id="insertWork" parameterType="Work" useGeneratedKeys="true" keyProperty="oaWorkId">
+        insert into oa_work
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deptId != null ">dept_id,</if>
+            <if test="workName != null  and workName != ''">work_name,</if>
+            <if test="status != null ">status,</if>
+            <if test="importantLevel != null ">important_level,</if>
+            <if test="difficultLevel != null ">difficult_level,</if>
+            <if test="startDate != null  and startDate != ''">start_date,</if>
+            <if test="endDate != null  and endDate != ''">end_date,</if>
+            <if test="isTeam != null ">is_team,</if>
+            <if test="sourceType != null ">source_type,</if>
+            <if test="sponsorId != null ">sponsor_id,</if>
+            <if test="content != null  and content != ''">content,</if>
+            <if test="progress != null  and progress != ''">progress,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="workName != null  and workName != ''">#{workName},</if>
+            <if test="status != null ">#{status},</if>
+            <if test="importantLevel != null ">#{importantLevel},</if>
+            <if test="difficultLevel != null ">#{difficultLevel},</if>
+            <if test="startDate != null  and startDate != ''">#{startDate},</if>
+            <if test="endDate != null  and endDate != ''">#{endDate},</if>
+            <if test="isTeam != null ">#{isTeam},</if>
+            <if test="sourceType != null ">#{sourceType},</if>
+            <if test="sponsorId != null ">#{sponsorId},</if>
+            <if test="content != null  and content != ''">#{content},</if>
+            <if test="progress != null  and progress != ''">#{progress},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWork" parameterType="Work">
+        update oa_work
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deptId != null ">dept_id = #{deptId},</if>
+            <if test="workName != null  and workName != ''">work_name = #{workName},</if>
+            <if test="status != null ">status = #{status},</if>
+            <if test="importantLevel != null ">important_level = #{importantLevel},</if>
+            <if test="difficultLevel != null ">difficult_level = #{difficultLevel},</if>
+            <if test="startDate != null  and startDate != ''">start_date = #{startDate},</if>
+            <if test="endDate != null  and endDate != ''">end_date = #{endDate},</if>
+            <if test="isTeam != null ">is_team = #{isTeam},</if>
+            <if test="sourceType != null ">source_type = #{sourceType},</if>
+            <if test="sponsorId != null ">sponsor_id = #{sponsorId},</if>
+            <if test="content != null  and content != ''">content = #{content},</if>
+            <if test="progress != null  and progress != ''">progress = #{progress},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_work_id = #{oaWorkId}
+    </update>
+
+    <delete id="deleteWorkById" parameterType="Long">
+        delete from oa_work where oa_work_id = #{oaWorkId}
+    </delete>
+
+    <delete id="deleteWorkByIds" parameterType="String">
+        delete from oa_work where oa_work_id in 
+        <foreach item="oaWorkId" collection="array" open="(" separator="," close=")">
+            #{oaWorkId}
+        </foreach>
+    </delete>
+
+    <select id="selectWorkByUserIdForMain" parameterType="Work" resultMap="WorkResult">
+        SELECT
+                0 searchType,
+                count(a.oa_work_id) AS num
+            FROM
+            (
+                SELECT
+                  t.*
+                FROM
+                  oa_work t
+                WHERE
+                    t.del_flag = 0
+        <if test="userId != null ">AND t.sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+                GROUP BY
+                  t.oa_work_id
+            ) a
+        UNION ALL
+            SELECT
+                1 searchType,
+                count(b.oa_work_id) AS num
+            FROM
+            (
+                SELECT
+                  t.*
+                FROM
+                  oa_work t
+                WHERE
+                    t.del_flag = 0
+                    AND t. STATUS = 1
+                    AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(t.end_date, '%Y-%m-%d')
+        <if test="userId != null ">AND t.sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+                GROUP BY
+                  t.oa_work_id
+            ) b
+        UNION ALL
+            SELECT
+                3 searchType,
+                count(f.oa_work_id) AS num
+            FROM
+                (
+                SELECT
+                  t.*
+                FROM
+                  oa_work t
+                WHERE
+                    t.del_flag = 0
+                    AND t. STATUS = 1
+                    AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt; DATE_FORMAT(t.end_date, '%Y-%m-%d')
+        <if test="userId != null ">AND t.sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+                GROUP BY
+                t.oa_work_id
+            ) f
+        UNION ALL
+            SELECT
+              2 searchType,
+              count(c.oa_work_id) AS num
+            FROM
+            (
+                SELECT
+                    t.*
+                FROM
+                  oa_work t
+                WHERE
+                    t.del_flag = 0
+                    AND t. STATUS = 2
+        <if test="userId != null ">AND t.sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+                GROUP BY
+                    t.oa_work_id
+            ) c
+    </select>
+    
+</mapper>

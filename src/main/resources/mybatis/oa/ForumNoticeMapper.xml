@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.ForumNoticeMapper">
+    
+    <resultMap type="ForumNotice" id="ForumNoticeResult">
+        <result property="forumNoticeId"    column="forum_notice_id"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectForumNoticeVo">
+        select forum_notice_id, title, content, order_num, del_flag, create_time from forum_notice
+    </sql>
+
+    <select id="selectForumNoticeList" parameterType="ForumNotice" resultMap="ForumNoticeResult">
+        <include refid="selectForumNoticeVo"/>
+        <where>  
+            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+            <if test="orderNum != null "> and order_num = #{orderNum}</if>
+            <if test="cStartTime != null and cStartTime != ''">
+                AND create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if  test="cEndTime != null and cEndTime !='' ">
+                and create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY order_num
+    </select>
+    
+    <select id="selectForumNoticeById" parameterType="Long" resultMap="ForumNoticeResult">
+        <include refid="selectForumNoticeVo"/>
+        where forum_notice_id = #{forumNoticeId}
+    </select>
+        
+    <insert id="insertForumNotice" parameterType="ForumNotice" useGeneratedKeys="true" keyProperty="forumNoticeId">
+        insert into forum_notice
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null  and title != ''">title,</if>
+            <if test="content != null  and content != ''">content,</if>
+            <if test="orderNum != null ">order_num,</if>
+            <if test="delFlag != null ">del_flag,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null  and title != ''">#{title},</if>
+            <if test="content != null  and content != ''">#{content},</if>
+            <if test="orderNum != null ">#{orderNum},</if>
+            <if test="delFlag != null ">#{delFlag},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateForumNotice" parameterType="ForumNotice">
+        update forum_notice
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null  and title != ''">title = #{title},</if>
+            <if test="content != null  and content != ''">content = #{content},</if>
+            <if test="orderNum != null ">order_num = #{orderNum},</if>
+            <if test="delFlag != null ">del_flag = #{delFlag},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where forum_notice_id = #{forumNoticeId}
+    </update>
+
+    <delete id="deleteForumNoticeById" parameterType="Long">
+        delete from forum_notice where forum_notice_id = #{forumNoticeId}
+    </delete>
+
+    <delete id="deleteForumNoticeByIds" parameterType="String">
+        delete from forum_notice where forum_notice_id in 
+        <foreach item="forumNoticeId" collection="array" open="(" separator="," close=")">
+            #{forumNoticeId}
+        </foreach>
+    </delete>
+    
+</mapper>

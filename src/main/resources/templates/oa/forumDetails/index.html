@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('我的论坛')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+</head>
+<style>
+    img{
+        width: 80px;
+        height: 80px;
+    }
+    .dtitle{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .disf{
+        display: flex;
+    }
+    .pl{
+        padding-left: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;;
+    }
+    .pt{
+        padding-top: 20px;
+        padding-bottom: 20px;
+        border-bottom: solid 1px;
+        border-color: #dddddd;
+    }
+    .content{
+        word-break: break-all;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+/*        height: 26px;*/
+    }
+    .pointer{
+        cursor:pointer;
+    }
+</style>
+<body class="gray-bg">
+     <div class="container-div">
+         <div class="row">
+             <div class="col-sm-12 search-collapse">
+                 <div class="dtitle">
+                     <div class="disf" th:object="${forum}">
+                         <img src="/img/profile1.jpg" th:src="*{imgUrl==null ? '/img/profile1.jpg':imgUrl}">
+                         <div class="pl">
+                             <div th:text="*{title}">豪车论坛</div>
+                             <input type="hidden" th:value="*{id}" name="forumId" id="forumId">
+                             <div>创建时间：<span th:text="*{#dates.format(createTime,'yyyy-MM-dd HH:mm:ss')}"></span></div>
+                             <div>帖子: <span th:text="${messageNum}">0</span></div>
+                         </div>
+                     </div>
+
+                    <div>
+                        <button type="button" class="btn btn-info" onclick="fatie()">发帖</button>
+                    </div>
+
+                 </div>
+             </div>
+
+             <div class="col-sm-12 search-collapse">
+                 <ul class="nav nav-tabs">
+                     <li role="presentation" class="taolun active" onclick="qiehuan('taolun')"><a href="#">讨论区</a></li>
+                     <li role="presentation" class="jingpinqu" onclick="qiehuan('jingpinqu')"><a href="#">精品区</a></li>
+                 </ul>
+                 <div style="overflow-y: auto; height: 97%;">
+                     <!-- 分页容器：显示数据 -->
+                     <div id="htmlDiv"></div>
+                     <!-- 分页容器： 显示分页按钮-->
+                     <div class="col-lg-12" align="center">
+                         <!-- 注意:3版本的分页容器标签是<ul>，2版本的容器标签是<div> -->
+                         <ul id="mypage"></ul>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+    <th:block th:include="include :: footer" />
+     <th:block th:include="include :: select2-js" />
+     <th:block th:include="include :: bootstrap-select-js" />
+     <script th:src="@{/ueditor/ueditor.config.js}"></script>
+     <script th:src="@{/ueditor/ueditor.all.min.js}"></script>
+     <script th:src="@{/ueditor/lang/zh-cn/zh-cn.js}"></script>
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('oa:message:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('oa:message:remove')}]];
+        var prefix = ctx + "oa/message";
+        $(function() {
+            $("#jingpinqu").hide();
+            pageStart("/oa/forumDetails/talkList");//讨论区分页
+        });
+
+        function pageStart(url) {//分页函数
+                var forumId = $("#forumId").val();
+                $.ajax({ //去后台查询第一页数据
+                    type: "post",
+                    url: url,
+                    dataType: "json",
+                    data: {pageNum: '1',pageSize:'7', forumId: forumId}, //参数：当前页为1
+                    success: function (data) {
+                        appendHtml(data.list)//处理第一页的数据
+                        var pags = data.pages;
+                        var currentPage = data.pageNum;
+                        if(pags===0){
+                            pags=1;
+                        }
+                        if(currentPage===0){
+                            currentPage = 1;
+                        }
+                        var options = {//根据后台返回的分页相关信息，设置插件参数
+                            bootstrapMajorVersion: 3, //如果是bootstrap3版本需要加此标识，并且设置包含分页内容的DOM元素为UL,如果是bootstrap2版本，则DOM包含元素是DIV
+                            currentPage: currentPage, //当前页数
+                            totalPages: pags, //总页数
+                            numberOfPages: 5,//每页记录数
+                            itemTexts: function (type, page, current) {//设置分页按钮显示字体样式
+                                switch (type) {
+                                    case "first":
+                                        return "首页";
+                                    case "prev":
+                                        return "上一页";
+                                    case "next":
+                                        return "下一页";
+                                    case "last":
+                                        return "末页";
+                                    case "page":
+                                        return page;
+                                }
+                            },
+                            onPageClicked: function (event, originalEvent, type, pageNum) {//分页按钮点击事件
+                                $.ajax({//根据page去后台加载数据
+                                    url: url,
+                                    type: "post",
+                                    dataType: "json",
+                                    data: {"pageNum": pageNum,forumId: forumId,pageSize:'7'},
+                                    success: function (data) {
+                                        appendHtml(data.list);//处理数据
+                                    }
+                                });
+                            }
+                        };
+                        $('#mypage').bootstrapPaginator(options);//设置分页
+                    }
+                })
+            }
+
+
+        function appendHtml(list) {//此函数用于处理后台返回的数据，根据自己需求来实现页面拼接
+            $('#htmlDiv').empty();
+            var tableShow = '';
+            if(list==null || list.length==0){
+                tableShow += '<span>暂无数据</span>';
+            }else{
+                for (var i = 0; i < list.length; i++) {
+                    tableShow += '<div class="pt pointer" onclick="replyIndex('+list[i].id+')">';
+                    tableShow +='<div style="font-size: 1.5rem;font-weight: bolder;"><span>'+list[i].titile+'</span></div>';
+                    if(list[i].isZd==1){
+                        tableShow +='<div><span style="color: red;padding-right: 10px;">置顶</span></div>';
+                    }
+                    tableShow +='<div class="content">';
+                    if(list[i].context){
+                        tableShow += list[i].context;
+                    }else {
+                        tableShow += '暂无内容';
+                    }
+                    tableShow +='</div>';
+                    tableShow +='<div>发帖人：<span>'+list[i].userName+'</span></div>';
+                    tableShow +='<div class="dtitle">';
+                    tableShow += ' <div><span>跟帖：<span>'+list[i].replyNum+'</span></span> <span>阅读：<span>'+list[i].readNum+'</span></span>  <span>收藏：<span>'+list[i].collNum+'</span></span> </div>';
+                    tableShow +='</div>';
+                    tableShow += '</div>';
+                }
+            }
+            $('#htmlDiv').html(tableShow)
+        }
+
+        //切换
+        function  qiehuan(param){
+            if(param=='taolun'){
+                $(".jingpinqu").removeClass("active");
+                $(".taolun").addClass("active");
+                pageStart("/oa/forumDetails/talkList");//讨论区分页
+            }else {
+                $(".taolun").removeClass("active");
+                $(".jingpinqu").addClass("active")
+                pageStart("/oa/forumDetails/jpList");//讨论区分页
+            }
+
+        }
+        //发帖
+        function fatie() {
+            var id = $("#forumId").val();
+            var url = ctx + "oa/forumCreate/"+id;
+            $.modal.open("发帖",url,800,600)
+        }
+
+        function replyIndex(id) {
+            var url = "/oa/forumDetails/replyIndex/"+id;
+            //如果是移动端，就使用自适应大小弹窗
+            var width='';
+            var height='';
+            if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+                width = 'auto';
+                height = 'auto';
+            }
+            var index = layer.open({
+                type: 2,
+                area: [width + 'px', height + 'px'],
+                fix: false,
+                //不固定
+                maxmin: false,
+                shade: 0.3,
+                title: "查看详情信息",
+                content: url,
+                // 弹层外区域关闭
+                shadeClose: false,
+                cancel: function(index) {
+                    return true;
+                }
+            });
+            layer.full(index);
+        }
+    </script>
+</body>
+</html>

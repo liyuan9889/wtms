@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('任务评价列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <input type="hidden" id="taskId" th:value="${taskId}">
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <!--<a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="oa:comment:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="oa:comment:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>-->
+                <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>关 闭 </button>
+            </div>
+
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('oa:comment:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('oa:comment:remove')}]];
+        var prefix = ctx + "oa/comment";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list?taskId=" + $("#taskId").val(),
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "任务评价",
+                columns: [
+                {
+                    field : 'oaTaskCommentId', 
+                    title : '主键',
+                    visible: false
+                },
+                {
+                    field : 'userName',
+                    title : '评价人'
+                },
+                {
+                    field : 'star', 
+                    title : '评价星级'
+                },
+                {
+                    field : 'isPass', 
+                    title : '是否通过',
+                    formatter: function(value, row, index) {
+                        if (value == 0){
+                            return "是";
+                        } else {
+                            return "否";
+                        }
+                    }
+                },
+                {
+                    field : 'reason', 
+                    title : '不通过理由'
+                },
+                    {
+                        field : 'createTime',
+                        title : '评价时间'
+                   }
+                ]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

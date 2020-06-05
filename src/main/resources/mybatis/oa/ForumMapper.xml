@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.ForumMapper">
+    
+    <resultMap type="Forum" id="ForumResult">
+        <result property="id"    column="id"    />
+        <result property="title"    column="title"    />
+        <result property="plateType"    column="plate_type"    />
+        <result property="createUser"    column="create_user"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateUser"    column="update_user"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="status"    column="status"    />
+        <result property="imgUrl" column="img_url"/>
+    </resultMap>
+
+    <sql id="selectForumVo">
+        select id, title, create_user, create_time, update_user, update_time, status,img_url, plate_type from forum
+    </sql>
+
+    <select id="selectForumList" parameterType="Forum" resultMap="ForumResult">
+        <include refid="selectForumVo"/>
+        <where>  
+            <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="plateType != null "> and plate_type = #{plateType}</if>
+            <if test="createUser != null "> and create_user = #{createUser}</if>
+            <if test="updateUser != null "> and update_user = #{updateUser}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            and status=0 order by create_time desc
+        </where>
+    </select>
+    
+    <select id="selectForumById" parameterType="Long" resultMap="ForumResult">
+        <include refid="selectForumVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectForumByTitle" parameterType="String" resultMap="ForumResult">
+        <include refid="selectForumVo"/>
+        where title=#{title}  and status=0
+    </select>
+        
+    <insert id="insertForum" parameterType="Forum" useGeneratedKeys="true" keyProperty="id">
+        insert into forum
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null  and title != ''">title,</if>
+            <if test="plateType != null ">plate_type,</if>
+            <if test="createUser != null ">create_user,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateUser != null ">update_user,</if>
+            <if test="updateTime != null ">update_time,</if>
+            <if test="status != null ">status,</if>
+            <if test="imgUrl != null ">img_url,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null  and title != ''">#{title},</if>
+            <if test="plateType != null ">#{plateType},</if>
+            <if test="createUser != null ">#{createUser},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateUser != null ">#{updateUser},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+            <if test="status != null ">#{status},</if>
+            <if test="imgUrl != null ">#{imgUrl},</if>
+         </trim>
+    </insert>
+
+    <update id="updateForum" parameterType="Forum">
+        update forum
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null  and title != ''">title = #{title},</if>
+            <if test="plateType != null ">plate_type = #{plateType},</if>
+            <if test="createUser != null ">create_user = #{createUser},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateUser != null ">update_user = #{updateUser},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+            <if test="status != null ">status = #{status},</if>
+            <if test="imgUrl != null ">img_url=#{imgUrl},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <!--<delete id="deleteForumById" parameterType="Long">
+        delete from forum where id = #{id}
+    </delete>-->
+    <update id="deleteForumById" parameterType="Forum">
+        update forum
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="updateUser != null ">update_user = #{updateUser},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+            <if test="status != null ">status = #{status},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <!--<delete id="deleteForumByIds" parameterType="String">
+        delete from forum where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>-->
+    <update id="deleteForumByIds"  parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update forum
+            <set>
+                <if test="item.updateUser != null ">update_user = #{item.updateUser},</if>
+                <if test="item.updateTime != null ">update_time = #{item.updateTime},</if>
+                <if test="item.status != null ">status = #{item.status},</if>
+            </set>
+            where id = ${item.id}
+        </foreach>
+    </update>
+
+</mapper>

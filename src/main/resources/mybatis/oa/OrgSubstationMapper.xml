@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.OrgSubstationMapper">
+    
+    <resultMap type="OrgSubstation" id="OrgSubstationResult">
+        <result property="oaOrgSubstationId"    column="oa_org_substation_id"    />
+        <result property="orgId"    column="org_id"    />
+        <result property="substationName"    column="substation_name"    />
+        <result property="voltageLevel"    column="voltage_level"    />
+        <result property="address"    column="address"    />
+        <result property="mark"    column="mark"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectOrgSubstationVo">
+        select oa_org_substation_id, org_id, substation_name, voltage_level, address, mark, del_flag, create_time,
+        update_time from oa_org_substation
+    </sql>
+
+    <select id="selectOrgSubstationList" parameterType="OrgSubstation" resultMap="OrgSubstationResult">
+        <include refid="selectOrgSubstationVo"/>
+        <where>
+            del_flag=0
+            <if test="orgId != null "> and org_id = #{orgId}</if>
+            <if test="substationName != null  and substationName != ''"> and substation_name like concat('%', #{substationName}, '%')</if>
+            <if test="voltageLevel != null  and voltageLevel != ''"> and voltage_level = #{voltageLevel}</if>
+            <if test="address != null  and address != ''"> and address = #{address}</if>
+            <if test="mark != null  and mark != ''"> and mark = #{mark}</if>
+        </where>
+    </select>
+    
+    <select id="selectOrgSubstationById" parameterType="Long" resultMap="OrgSubstationResult">
+        <include refid="selectOrgSubstationVo"/>
+        where oa_org_substation_id = #{oaOrgSubstationId}
+    </select>
+        
+    <insert id="insertOrgSubstation" parameterType="OrgSubstation" useGeneratedKeys="true" keyProperty="oaOrgSubstationId">
+        insert into oa_org_substation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orgId != null ">org_id,</if>
+            <if test="substationName != null  and substationName != ''">substation_name,</if>
+            <if test="voltageLevel != null  and voltageLevel != ''">voltage_level,</if>
+            <if test="address != null  and address != ''">address,</if>
+            <if test="mark != null  and mark != ''">mark,</if>
+            <if test="delFlag != null ">del_flag,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orgId != null ">#{orgId},</if>
+            <if test="substationName != null  and substationName != ''">#{substationName},</if>
+            <if test="voltageLevel != null  and voltageLevel != ''">#{voltageLevel},</if>
+            <if test="address != null  and address != ''">#{address},</if>
+            <if test="mark != null  and mark != ''">#{mark},</if>
+            <if test="delFlag != null ">#{delFlag},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateOrgSubstation" parameterType="OrgSubstation">
+        update oa_org_substation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orgId != null ">org_id = #{orgId},</if>
+            <if test="substationName != null  and substationName != ''">substation_name = #{substationName},</if>
+            <if test="voltageLevel != null  and voltageLevel != ''">voltage_level = #{voltageLevel},</if>
+            <if test="address != null  and address != ''">address = #{address},</if>
+            <if test="mark != null  and mark != ''">mark = #{mark},</if>
+            <if test="delFlag != null ">del_flag = #{delFlag},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_org_substation_id = #{oaOrgSubstationId}
+    </update>
+
+    <delete id="deleteOrgSubstationById" parameterType="Long">
+        delete from oa_org_substation where oa_org_substation_id = #{oaOrgSubstationId}
+    </delete>
+
+    <update id="updateOrgSubstationByIds" parameterType="String">
+        UPDATE oa_org_substation set del_flag=1 WHERE oa_org_substation_id in
+        <foreach item="oaOrgSubstationId" collection="array" open="(" separator="," close=")">
+            #{oaOrgSubstationId}
+        </foreach>
+    </update>
+
+    <delete id="deleteOrgSubstationByIds" parameterType="String">
+        delete from oa_org_substation where oa_org_substation_id in 
+        <foreach item="oaOrgSubstationId" collection="array" open="(" separator="," close=")">
+            #{oaOrgSubstationId}
+        </foreach>
+    </delete>
+    
+</mapper>

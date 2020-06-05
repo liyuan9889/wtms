@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改任务任务')" />
+    <th:block th:include="include :: header('下拉框')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+    <link th:href="@{/css/task/taskFeedback.css}" rel="stylesheet"/>
+    <style type="text/css">
+        #editor1 {
+            width: 100%;
+            height: 300px;
+        }
+
+        .link-top {
+            width: 100%;
+            height: 1px;
+            border-top: solid #ACC0D8 1px;
+        }
+        .left_td {
+            padding-bottom: 25px;
+            text-align:left;
+            padding-left: 20px;
+        }
+        .right_td {
+            padding-bottom: 25px;
+            padding-left: 20px;
+            text-align:right;
+        }
+        td {
+            padding-top: 10px;
+        }
+        imageView    </style>
+</head>
+<body class="white-bg">
+    <div class="container-div">
+        <div class="row" style="display: flex;background: white;">
+            <div style="width: 20%"></div>
+            <div class="col-sm-12 search-collapse">
+                <div style="">
+                    <div th:object="${task}">
+                        <div  style="text-align: center;font-size: x-large;"><span th:text="*{taskName}">标题</span></div>
+                        <div style="text-align: center;padding: 10px 10px 3px 10px; width:100%">下发人:<span th:text="*{userName}">用户</span><span>&nbsp;&nbsp;&nbsp;&nbsp;发布时间: </span><span th:text="*{#dates.format(createTime,'yyyy-MM-dd HH:mm:ss')}"></span></div>
+                        <div style="text-align: center;padding: 10px 10px 3px 10px;">
+                            <b><span>来源：</span><span id="laiyuan"></span></b>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <b><span>部门：</span><span th:text="*{deptName}"></span></b>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <b><span>重要程度：</span><span id="zycd"></span></b>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <b><span>困难程度：</span><span id="kncd"></span></b>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <b><span>开始日期：</span><span id="ksrq"></span></b>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <b><span>截止日期：</span><span id="jzrq"></span></b>
+                        </div>
+                        <div class="link-top"></div>
+                        <div style="padding: 10px;" id="taskContentDiv">
+                            <input type="hidden" id="taskContent" name="content" th:field="*{content}"/>
+                        </div>
+                        <div class="link-top"></div>
+                    </div>
+
+                    <div class="row">
+                        <div th:each="task, taskStat: ${taskList}">
+                            <table>
+                                <tr>
+                                    <input class="content" type="hidden" th:id="content+(${taskStat.index}+1)" name="content" th:value="${task.replyContent}"/>
+                                    <td colspan="4" class="left_td">
+                                        <span th:text="${task.userName}" style="display:inline-block;"></span>：
+                                        <span class="divContent" th:id="divContent+(${taskStat.index}+1)" style="display:inline-block;"></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="right_td">时间：</td><td style="float:left"><span th:text="${task.replyCreateTime}"></span></td>
+                                    <td class="left_td">时长：</td><td style="float:left"><span th:text="${task.hours}"></span></td>
+                                    <td class="left_td" style="color: #1aad19">进度：</td><td style="float:left; color: #1aad19"><span th:text="${task.replyProgress}"></span>%</td>
+                                </tr>
+                            </table>
+                            <div class="link-top"></div>
+                        </div>
+                    </div>
+
+                    <div id="replayDiv" class="row" style="display: none">
+                        <h2>汇报任务：</h2><br/>
+                        <div style="display:inline-block;">时长：</div><input style="display:inline-block;width:200px" id="hours" name="hours" placeholder="请输入时长">&nbsp;&nbsp;&nbsp;&nbsp;
+                        <div style="display:inline-block;">进度：</div><input style="display:inline-block;width:200px" id="progress" name="progress" placeholder="请输入数字，100表示已完成">
+                        <div id="editor1" type="text/plain"></div>
+                    </div>
+
+                    <div id="appraiseDiv" class="order-evaluation clearfix" style="display: none">
+                        <div class="block">
+                            <ul>
+                                <li id="starLi" data-default-index="0" style="text-align: center">
+                            <span>
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                                <img th:src="@{/img/x1.png}">
+                            </span>
+                                    <em class="level"></em>
+                                </li>
+                                <br/>
+                                <li style="text-align: center">
+                                    <a class="btn btn-primary btn-sm" onclick="agree()"><i class="fa fa-check-square-o"></i>&nbsp;&nbsp;通过&nbsp;&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <a class="btn btn-danger btn-sm" onclick="reject()"><i class="fa fa-remove"></i>&nbsp;不通过</a>
+                                    <br/><br/><br/>
+                                    <span>
+                                         <textarea id="reason" name="reason" style="display: none;width:300px;height:100px;" placeholder="请填写不通过的理由" ></textarea>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row" style="padding-top: 30px">
+                        <ul>
+                            <li style="text-align: center;display: none" id="feedbackDiv">
+                                <a class="btn btn-sm btn-success" onclick="feedback()"><i class="fa fa-plus"></i>汇 报 </a>
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <a class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>关 闭 </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="row" id="closeDiv" style="display: none">
+                        <br/><br/><br/><br/><br/><br/>
+                        <ul>
+                            <li style="text-align: center;">
+                                <a class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>关 闭 </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+            <div style="width: 20%"></div>
+        </div>
+
+    </div>
+
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content" style="display: none">
+        <form class="form-horizontal m" id="form-task-edit" th:object="${task}">
+            <div class="row">
+                <input name="oaTaskId" id="oaTaskId" th:field="*{oaTaskId}" type="hidden">
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">来源：</label>
+                        <div class="col-sm-8">
+                            <select name="sourceType" id="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" disabled="disabled">
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{sourceType}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">部门：</label>
+                        <div class="col-sm-8">
+                            <input id="deptIdInput" th:value="*{deptId}" class="form-control" type="hidden">
+                            <select id="deptId" class="form-control" onchange="getSubDeptEmp()" disabled="disabled">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">重要程度：</label>
+                        <div class="col-sm-8">
+                            <select id="importantLevel" name="importantLevel" class="form-control m-b" th:with="type=${@dict.getType('oa_important_level')}" disabled="disabled">
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{importantLevel}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">困难程度：</label>
+                        <div class="col-sm-8">
+                            <select id="difficultLevel" name="difficultLevel" class="form-control m-b" th:with="type=${@dict.getType('oa_difficult_level')}" disabled="disabled">
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{difficultLevel}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">任务名称：</label>
+                        <div class="col-sm-8">
+                            <input name="taskName" th:field="*{taskName}" class="form-control" type="text" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">进度：</label>
+                        <div class="col-sm-8">
+                            <input name="progress" th:value="*{progress}" class="form-control" type="text" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">开始日期：</label>
+                        <div class="col-sm-8">
+                            <input id="startDate" name="startDate" th:field="*{startDate}" class="form-control" type="text" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">截止日期：</label>
+                        <div class="col-sm-8">
+                            <input id="endDate" name="endDate" th:field="*{endDate}" class="form-control" type="text" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-3">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">任务描述：</label>
+                        <div class="col-sm-8" id="ueditorContent">
+                            <input type="hidden" id="content" name="content" th:field="*{content}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    <br/>
+
+
+
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-js" />
+    <th:block th:include="include :: bootstrap-select-js" />
+    <script th:src="@{/ueditor/ueditor.config.js}"></script>
+    <script th:src="@{/ueditor/ueditor.all.min.js}"></script>
+    <script th:src="@{/ueditor/lang/zh-cn/zh-cn.js}"></script>
+    <script th:src="@{/js/task/taskFeedback.js}"></script>
+    <script type="text/javascript">
+        var flag = [[${flag}]]; // 领导标志
+        var isExecutor = [[${isExecutor}]];// 执行人标志
+        var isAppraiser = [[${isAppraiser}]];// 评价人标志
+        if (flag != 1){
+            var ue1 = UE.getEditor('editor1',{
+                autoHeightEnabled: false,
+                iframeCssUrl: '/ueditor/themes/iframe.css',// 引入css
+                initialFrameHeight:200,initialFrameWidth:'100%'
+            });
+        } else {
+            $("#feedbackDiv").hide();
+            $("#closeDiv").css("display", "block");
+        }
+        if (isExecutor == 1){
+            $("#feedbackDiv").css("display", "block");
+            $("#replayDiv").css("display", "block");
+        } else {
+            $("#closeDiv").css("display", "block");
+        }
+        if (isAppraiser == 1){
+            $("#appraiseDiv").css("display", "block");
+        } else {
+            $("#closeDiv").css("display", "block");
+        }
+
+        if ($("#feedbackDiv").css('display') === 'block'){
+            $("#closeDiv").css("display", "none");
+        }
+
+        $(document).on("click",".divContent img",function(){
+            var message = $(this).attr("src");
+        })
+
+        function agree() {
+            var star = $("#starLi").attr("data-default-index");
+            if (star == 0){
+                $.modal.alertWarning("请选择星星进行评价");
+                return;
+            }
+            submitComment(star, 0, '');
+        }
+        var rejectFlag = 0;
+        function reject() {
+            if (rejectFlag == 0){
+                $("#reason").css("display", "block");
+                rejectFlag++;
+                return;
+            }
+            var reason = $("#reason").val().trim();
+            if (reason == '') {
+                $.modal.alertWarning("请填写不通过的理由");
+                return;
+            }
+            var star = $("#starLi").attr("data-default-index");
+            submitComment(star, 1, reason);
+        }
+
+        function submitComment(star, isPass, reason) {
+            $.ajax({
+                url: comment_prefix + "/ajaxSaveTaskComment",
+                data:{
+                    taskId: $("#oaTaskId").val(),
+                    star: star,
+                    isPass: isPass,
+                    reason: reason
+                },
+                type:"POST",
+                dataType:"json",
+                success:function(data){
+                    if(data.code == 0){
+                        $.modal.alertSuccess("评价成功");
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            });
+        }
+
+        $("#ueditorContent").html('<div style="width:100%;height:100%;">' + $("#content").val() +'</div>');
+        var divContent = $("span.divContent");
+        var content = $("input.content");
+        for (var i = 0; i< divContent.length; i++) {
+            var ueditor = divContent.eq(i).attr("id");
+            var cont = content.eq(i).attr("value");
+            $("#"+ueditor).html('<div style="width:100%;height:100%;">' + cont +'</div>');
+        };
+
+        var prefix = ctx + "oa/task";
+        var dept_prefix = ctx + "system/dept";
+        var comment_prefix = ctx + "oa/comment";
+        $("#form-task-edit").validate({
+            focusCleanup: true
+        });
+
+        $(function(){
+            $("#laiyuan").html($("#select2-sourceType-container").attr("title"));
+            $("#zycd").html($("#importantLevel").find("option:selected").text());
+            $("#kncd").html($("#difficultLevel").find("option:selected").text());
+            $("#ksrq").html($("#startDate").val());
+            $("#jzrq").html($("#endDate").val());
+            $("#taskContentDiv").html('<div style="width:100%;height:100%;">' + $("#taskContent").val() +'</div>');
+
+            var deptIdInput = $("#deptIdInput").val();
+            // 所属组织
+            $.ajax({
+                url: dept_prefix + "/getDeptListByLoginUser",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $("#deptId").append("<option value=''>请选择</option>");
+                    $.each(data, function (index, item) {
+                        var deptId = data[index].deptId;
+                        var deptName = data[index].deptName;
+                        if (deptIdInput == deptId){
+                            $("#deptId").append("<option selected='selected' value='"+deptId+"'>"+deptName+"</option>");
+                        } else {
+                            $("#deptId").append("<option value='"+deptId+"'>"+deptName+"</option>");
+                        }
+                    });
+                }
+            });
+
+        })
+
+        // 汇报任务
+        function feedback() {
+            var content = ue1.getContent();
+            if ($("#hours").val() == ''){
+                $.modal.alertError("请输入时长");
+                return
+            }
+            if ($("#progress").val() == ''){
+                $.modal.alertError("请输入进度");
+                return
+            }
+            if ($.trim(content) == ''){
+                $.modal.alertError("请输入汇报任务");
+                return
+            }
+
+            $.ajax({
+                url: prefix + "/feedback",
+                data: {
+                    taskId: $("#oaTaskId").val(),
+                    progress: $("#progress").val(),
+                    hours: $("#hours").val(),
+                    content: content
+                },
+                type: "post",
+                dataType: "json",
+                success:function(data){
+                    if (data.code == 0){
+                        $.modal.msgSuccess("汇报成功");
+                        window.location.reload();
+                    }
+                }
+            });
+
+        }
+
+        //监听输入框只能输入0~100（包括0和100）的数字
+        $(document).on("input propertychange","#progress",function(){
+            var limitNum = $(this).val().replace(/[^0-9.]+/g, "");
+            if(limitNum>=0&&limitNum<=100){
+                $(this).val(limitNum);
+            }else{
+                $(this).val("");
+            }
+        })
+    </script>
+</body>
+</html>

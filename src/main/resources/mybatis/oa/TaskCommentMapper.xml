@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.TaskCommentMapper">
+    
+    <resultMap type="TaskComment" id="TaskCommentResult">
+        <result property="oaTaskCommentId"    column="oa_task_comment_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="star"    column="star"    />
+        <result property="isPass"    column="is_pass"    />
+        <result property="reason"    column="reason"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+
+        <result property="userName"    column="user_name"    />
+    </resultMap>
+
+    <sql id="selectTaskCommentVo">
+        select c.oa_task_comment_id, c.task_id, c.user_id, c.star, c.is_pass, c.reason, c.del_flag, c.create_time,
+        c.update_time from oa_task_comment c
+    </sql>
+
+    <select id="selectTaskCommentList" parameterType="TaskComment" resultMap="TaskCommentResult">
+        select u.user_name, c.oa_task_comment_id, c.task_id, c.user_id, c.star, c.is_pass, c.reason, c.del_flag,
+        c.create_time, c.update_time from oa_task_comment c inner join sys_user u on c.user_id=u.user_id
+        <where>
+            u.del_flag=0
+            <if test="taskId != null "> and c.task_id = #{taskId}</if>
+            <if test="userId != null "> and c.user_id = #{userId}</if>
+            <if test="star != null "> and c.star = #{star}</if>
+            <if test="isPass != null "> and c.is_pass = #{isPass}</if>
+            <if test="reason != null  and reason != ''"> and c.reason = #{reason}</if>
+        </where>
+    </select>
+
+    <select id="searchCommentListByTaskId" parameterType="TaskComment" resultMap="TaskCommentResult">
+        select oa_task_comment_id, task_id, user_id, star, is_pass, reason, del_flag,
+        create_time, update_time from oa_task_comment
+        <where>
+            del_flag=0
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+        </where>
+        group by user_id
+    </select>
+    
+    <select id="selectTaskCommentById" parameterType="Long" resultMap="TaskCommentResult">
+        <include refid="selectTaskCommentVo"/>
+        where oa_task_comment_id = #{oaTaskCommentId}
+    </select>
+        
+    <insert id="insertTaskComment" parameterType="TaskComment" useGeneratedKeys="true" keyProperty="oaTaskCommentId">
+        insert into oa_task_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null ">task_id,</if>
+            <if test="userId != null ">user_id,</if>
+            <if test="star != null ">star,</if>
+            <if test="isPass != null ">is_pass,</if>
+            <if test="reason != null  and reason != ''">reason,</if>
+            <if test="delFlag != null ">del_flag,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null ">#{taskId},</if>
+            <if test="userId != null ">#{userId},</if>
+            <if test="star != null ">#{star},</if>
+            <if test="isPass != null ">#{isPass},</if>
+            <if test="reason != null  and reason != ''">#{reason},</if>
+            <if test="delFlag != null ">#{delFlag},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTaskComment" parameterType="TaskComment">
+        update oa_task_comment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null ">task_id = #{taskId},</if>
+            <if test="userId != null ">user_id = #{userId},</if>
+            <if test="star != null ">star = #{star},</if>
+            <if test="isPass != null ">is_pass = #{isPass},</if>
+            <if test="reason != null  and reason != ''">reason = #{reason},</if>
+            <if test="delFlag != null ">del_flag = #{delFlag},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_task_comment_id = #{oaTaskCommentId}
+    </update>
+
+    <delete id="deleteTaskCommentById" parameterType="Long">
+        delete from oa_task_comment where oa_task_comment_id = #{oaTaskCommentId}
+    </delete>
+
+    <delete id="deleteTaskCommentByIds" parameterType="String">
+        delete from oa_task_comment where oa_task_comment_id in 
+        <foreach item="oaTaskCommentId" collection="array" open="(" separator="," close=")">
+            #{oaTaskCommentId}
+        </foreach>
+    </delete>
+    
+</mapper>

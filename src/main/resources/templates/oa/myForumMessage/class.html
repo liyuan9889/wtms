@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('我的论坛')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+</head>
+<style>
+    .label{
+        padding: 20px 50px;
+        display: inline-block;
+        margin: 0 10px 20px 0 ;
+    }
+    .blog-post-top{
+        padding: 50px 0 120px 0;
+    }
+    .blog-post-meta{
+        padding: 50px 0 30px 0;
+    }
+    .liebiao{
+        display: flex;
+        justify-content: space-between;
+        /* margin-bottom: 20px; */
+        min-height: 30px;
+        align-items: center;
+        padding: 0px 10px 7px 8px;
+        /*border-bottom: solid 1px #d1dade;*/
+    }
+    .liebiao:hover{
+        background-color: #c3c3c3;
+    }
+    .left_td {
+        padding-bottom: 15px;
+        padding-right: 5px;
+        text-align:left;
+        padding-left: 45px;
+    }
+    table tr{
+
+    }
+    .text-cont {
+        width: 80px;
+        height: 24px;
+        overflow: hidden;
+        whitewhite-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .pointer{
+        cursor:pointer;
+    }
+    .zuire{
+        height: 30px;
+        background: #d1dade;
+        align-items: center;
+        display: flex;
+        padding-left: 10px;
+        justify-content: space-between;
+    }
+    .divzuire{
+        width: 50%;
+        /*border: solid 1px #d1dade;*/
+        margin-right: 2px;
+    }
+    .gengduo{
+        padding-right: 8px;
+    }
+    .spanPadding{
+        display: inline-block;
+        width: 40px;
+    }
+    .hhh:hover{
+        background: darkgrey;
+    }
+</style>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <div><h4>运维班</h4></div>
+                <div class="blog-post-meta" style="float: left; width:80%">
+                             <span class="label label-warning pointer"  th:each="list,listStat : ${deptYw}" th:onclick="'luntanList(\''+${list.deptId}+'\')'">
+                                 <span class="label label-warning"  th:text="${list.deptName}" >运维班</span>
+                             </span>
+                    <span th:if="${#lists.isEmpty(deptYw)}">暂无数据</span>
+                </div>
+                <div style="float: right; width:20%; height:290px;">
+                    <div>
+                        <label>帖子数量：<span th:text="${forumMessageNum}" id="forumMessageNum">0</span></label>
+                        <label>今日新增：<span th:text="${forumMessageAddNum}" id="forumMessageAddNum">0</span></label>
+                    </div>
+                    <div style="border:#ACC0D8 1px solid;min-height: 290px;">
+                        <div style="display: flex;justify-content: space-around;padding-top: 12px;">
+                            <div class="pointer" onclick="myMessage(0)"><img th:src="@{/img/tiezi.jpg}" style="width:35px;height:35px"><div>发帖</div></div>
+                            <div class="pointer"  onclick="myMessage(1)"><img th:src="@{/img/tiezi.jpg}" style="width:35px;height:35px"><div>我的贴</div></div>
+                            <div class="pointer"  onclick="myMessage(2)"><img th:src="@{/img/tiezi.jpg}" style="width:35px;height:35px"><div>回复帖</div></div>
+                            <div class="pointer"  onclick="myMessage(3)"><img th:src="@{/img/tiezi.jpg}" style="width:35px;height:35px"><div>收藏贴</div></div>
+                        </div>
+                        <div>
+                            <div style="padding: 10px;"><h4>公告</h4></div>
+                            <div style="display: flex;justify-content: space-between;align-items: center; width: 100%;">
+                                <div style="display: flex;justify-items: center;align-items: center; width: 90%;">
+                                        <i class="fa fa-volume-up" style="color: red;margin-left: 10px;"></i>
+                                        <marquee direction="up"   scrollamount="5" style="margin-left: 2rem;width: 90%">
+                                            <div class="pointer hhh" width="100%" th:each="list : ${noticeList}" th:onclick="'queryNotice(\''+${list.forumNoticeId}+'\')'">
+                                                <div style="margin: 10px;" th:text="${list.title}">无数据</div>
+                                            </div>
+                                        </marquee>
+                                </div>
+                                <div style="white-space: nowrap;margin-right: 10px;" onclick="noticeMore()"><a>更多</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex;width: 100%" id="luntan">
+                    <!--运维班下的论坛-->
+                </div>
+            </div>
+
+            <div class="col-sm-12 select-table table-striped">
+                <div style="float:left;width:100%">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <p>论坛名称：</p>
+                                <input type="text" name="titile" id="title"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-sm" onclick="forumList()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-sm" onclick="reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div  class="blog-post-meta" id="forumList">
+                    <!-- 这里是论坛列表-->
+                </div>
+                <div style="display: flex">
+                    <div class="divzuire">
+                        <div class="zuire"><span>最热</span><span class="gengduo pointer" onclick="more(1)">更多</span></div>
+                        <div style="background: aliceblue;">
+                            <div class="liebiao pointer" th:if="${#lists.isEmpty(hotForumMessageList)}">
+                                <div>暂无数据</div>
+                            </div>
+                            <div class="liebiao pointer" th:each="list,listStat :${hotForumMessageList}" th:onclick="'queryMessage(\''+${list.id}+'\')'">
+                                <div ><span th:text="${list.titile}"></span></div>
+                                <div><span >跟帖：<span th:text="${list.replyNum}" class="spanPadding">0</span></span><span>  阅读：<span th:text="${list.readNum}" class="spanPadding">0</span></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div  class="divzuire">
+                        <div class="zuire"><span>精品</span><span class="gengduo pointer" onclick="more(2)">更多</span></div>
+                        <div style="background: aliceblue;">
+                            <div class="liebiao pointer" th:if="${#lists.isEmpty(newForumMessageList)}">
+                                <div>暂无数据</div>
+                            </div>
+                            <div class="liebiao pointer" th:each="list,listStat :${newForumMessageList}" th:onclick="'queryMessage(\''+${list.id}+'\')'">
+                                <div ><span th:text="${list.titile}"></span></div>
+                                <div><span >跟帖：<span th:text="${list.replyNum}" class="spanPadding">0</span></span><span >   阅读：<span th:text="${list.readNum}"  class="spanPadding">0</span></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: select2-js" />
+<th:block th:include="include :: bootstrap-select-js" />
+<script th:src="@{/ueditor/ueditor.config.js}"></script>
+<script th:src="@{/ueditor/ueditor.all.min.js}"></script>
+<script th:src="@{/ueditor/lang/zh-cn/zh-cn.js}"></script>
+<script th:inline="javascript">
+    var editFlag = [[${@permission.hasPermi('oa:message:edit')}]];
+    var removeFlag = [[${@permission.hasPermi('oa:message:remove')}]];
+    var prefix = ctx + "oa/message";
+    var prefixForum = ctx + "oa/forum";
+    var datas = [[${@dict.getType('forum_plate_type')}]];
+    var plateTypeDatas = [[${@dict.getType('forum_plate_type')}]];
+    var userId = [[${userId}]];
+    $(function() {
+        forumList();
+    });
+
+    //点击运维班查询
+    function luntanList(id) {
+        getMessageNum(id);
+        getMessageAddNum(id);
+        var data={parentId:id};
+        $("#luntan").empty();
+        $.ajax({
+            url: "/oa/class/getSubList",
+            type: "post",
+            data:data,
+            dataType: "json",
+            success: function (data) {
+                if(data.code==0){
+                    if(data.data.length>0){
+                        data.data.forEach(function(element){
+                            $("#luntan").append("<span class='label pointer' onclick='query("+element.deptId+")'>"+element.deptName+"</span>");
+                        })
+                    }else{
+                        $("#luntan").append("暂无数据");
+                    }
+                }
+            }
+        });
+    }
+    //查询论坛列表
+    function  forumList() {
+        var data = {};
+        var deptName = $("#title").val();
+        if(title){
+            data['deptName'] = deptName;
+        }
+        //论坛的类型
+        //查询论坛
+        $.ajax({
+            url: "/oa/class/getSubAllList",
+            type: "post",
+            data:data,
+            dataType: "json",
+            success: function (data) {
+                if(data.code==0){
+                    $("#forumList").empty();
+                    if(data.data.length>0){
+                        data.data.forEach(function(element){
+                            $("#forumList").append("<span class='label pointer' onclick='query("+element.deptId+")'>"+element.deptName+"</span>");
+                        })
+                    }else{
+                        $("#forumList").append("暂无数据");
+                    }
+
+                }
+            }
+        });
+    }
+
+    //查询我的帖子
+    function myMessage(type) {
+
+        //发帖
+        if(type==0){
+            $.modal.open("发帖", "/oa/class/add");
+        }
+        //我的帖子
+        if(type==1){
+            var url ="/oa/class/myMessage";
+            //如果是移动端，就使用自适应大小弹窗
+            var width='';
+            var height='';
+            if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+                width = 'auto';
+                height = 'auto';
+            }
+            var index = layer.open({
+                type: 2,
+                area: [width + 'px', height + 'px'],
+                fix: false,
+                //不固定
+                maxmin: true,
+                shade: 0.3,
+                title: "我的帖子",
+                content: url,
+                // btn: ['返回'],
+                // 弹层外区域关闭
+                shadeClose: true,
+                cancel: function(index) {
+                    return true;
+                }
+            });
+            layer.full(index);
+        }
+        //我的回复
+        if(type==2){
+            var url ="/oa/class/myReply";
+            //如果是移动端，就使用自适应大小弹窗
+            var width='';
+            var height='';
+            if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+                width = 'auto';
+                height = 'auto';
+            }
+            var index = layer.open({
+                type: 2,
+                area: [width + 'px', height + 'px'],
+                fix: false,
+                //不固定
+                maxmin: true,
+                shade: 0.3,
+                title: "我的回复",
+                content: url,
+                // btn: ['返回'],
+                // 弹层外区域关闭
+                shadeClose: true,
+                cancel: function(index) {
+                    return true;
+                }
+            });
+            layer.full(index);
+        }
+        //我的收藏
+        if(type==3){
+            var url ="/oa/class/myColl";
+            //如果是移动端，就使用自适应大小弹窗
+            var width='';
+            var height='';
+            if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+                width = 'auto';
+                height = 'auto';
+            }
+            var index = layer.open({
+                type: 2,
+                area: [width + 'px', height + 'px'],
+                fix: false,
+                //不固定
+                maxmin: true,
+                shade: 0.3,
+                title: "我的收藏",
+                content: url,
+                // btn: ['返回'],
+                // 弹层外区域关闭
+                shadeClose: true,
+                cancel: function(index) {
+                    return true;
+                }
+            });
+            layer.full(index);
+        }
+    }
+    //查询重置
+    function  reset() {
+        $("#title").val("");
+    }
+
+    //查询公告详情
+    function queryNotice(id) {
+        var url = "/oa/notice/query/"+id;
+        layer.open({
+            type: 2,
+            maxmin: true,
+            shade: 0.3,
+            title: "详情",
+            fix: false,
+            area: [800 + 'px', $(window).height() - 50 + 'px'],
+            content: url,
+            shadeClose: true,
+            btn: ['关闭'],
+            cancel: function () {
+                return true;
+            }
+        });
+    }
+    //论坛详情
+    function query(param) {
+        var url = ctx + "oa/class/"+param;
+        //如果是移动端，就使用自适应大小弹窗
+        var width='';
+        var height='';
+        if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+            width = 'auto';
+            height = 'auto';
+        }
+        var index = layer.open({
+            type: 2,
+            area: [width + 'px', height + 'px'],
+            fix: false,
+            //不固定
+            maxmin: true,
+            shade: 0.3,
+            title: "论坛信息",
+            content: url,
+            // btn: ['返回'],
+            // 弹层外区域关闭
+            shadeClose: true,
+            cancel: function(index) {
+                return true;
+            }
+        });
+        layer.full(index);
+    }
+
+    //查看帖子详情
+    function queryMessage(id) {
+        var url = "/oa/class/replyIndex/"+id;
+        //如果是移动端，就使用自适应大小弹窗
+        var width='';
+        var height='';
+        if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+            width = 'auto';
+            height = 'auto';
+        }
+        var index = layer.open({
+            type: 2,
+            area: [width + 'px', height + 'px'],
+            fix: false,
+            //不固定
+            maxmin: false,
+            shade: 0.3,
+            title: "查看详情信息",
+            content: url,
+            // 弹层外区域关闭
+            shadeClose: false,
+            cancel: function(index) {
+                return true;
+            }
+        });
+        layer.full(index);
+    }
+
+    //更多
+    function  more(type) {
+        var url = ctx + "oa/class/hot/"+type;
+        var title = '最热';
+        if(type==1){
+            title =  '最热';
+        }else{
+            title =  '精品';
+        }
+        //如果是移动端，就使用自适应大小弹窗
+        var width='';
+        var height='';
+        if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+            width = 'auto';
+            height = 'auto';
+        }
+        var index = layer.open({
+            type: 2,
+            area: [width + 'px', height + 'px'],
+            fix: false,
+            //不固定
+            maxmin: true,
+            shade: 0.3,
+            title: title,
+            content: url,
+            // btn: ['返回'],
+            // 弹层外区域关闭
+            shadeClose: true,
+            cancel: function(index) {
+                return true;
+            }
+        });
+        layer.full(index);
+    }
+    //更多公告
+    function noticeMore() {
+        var url = "/oa/notice/noticeList";
+        //如果是移动端，就使用自适应大小弹窗
+        var width='';
+        var height='';
+        if (navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)) {
+            width = 'auto';
+            height = 'auto';
+        }
+        var index = layer.open({
+            type: 2,
+            area: [width + 'px', height + 'px'],
+            fix: false,
+            //不固定
+            maxmin: true,
+            shade: 0.3,
+            title: "公告信息",
+            content: url,
+            // btn: ['返回'],
+            // 弹层外区域关闭
+            shadeClose: true,
+            cancel: function(index) {
+                return true;
+            }
+        });
+        layer.full(index);
+    }
+
+    //帖子数量
+    function getMessageNum(deptId) {
+        $.ajax({
+            url: "/oa/class/getMessageNum",
+            type: "post",
+            data:{deptId:deptId},
+            dataType: "json",
+            success: function (data) {
+                if(data.code==0){
+                    $("#forumMessageNum").html(data.data)
+                }
+            }
+        });
+    }
+
+    //今日新增
+    function getMessageAddNum(deptId) {
+        $.ajax({
+            url: "/oa/class/getMessageAddNum",
+            type: "post",
+            data:{deptId:deptId},
+            dataType: "json",
+            success: function (data) {
+                if(data.code==0){
+                    $("#forumMessageAddNum").html(data.data)
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

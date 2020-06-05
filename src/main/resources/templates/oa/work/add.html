@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增工作汇报')" />
+    <th:block th:include="include :: header('下拉框')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+    <style type="text/css">
+        #editor {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-work-add">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">来源：</label>
+                        <div class="col-sm-8">
+                            <select name="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" required>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">组织：</label>
+                        <div class="col-sm-8">
+                            <select id="deptId" class="form-control" required>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">重要程度：</label>
+                        <div class="col-sm-8">
+                            <select name="importantLevel" class="form-control m-b" th:with="type=${@dict.getType('oa_important_level')}" required>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">困难程度：</label>
+                        <div class="col-sm-8">
+                            <select name="difficultLevel" class="form-control m-b" th:with="type=${@dict.getType('oa_difficult_level')}" required>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">任务名称：</label>
+                        <div class="col-sm-8">
+                            <input name="workName" class="form-control" type="text" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"></label>
+                        <div class="col-sm-8">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">开始日期：</label>
+                        <div class="col-sm-8">
+                            <input name="startDate" class="time-input" readonly type="text" style="height:30px;border:1px solid #e5e6e7" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label is-required">截止日期：</label>
+                        <div class="col-sm-8">
+                            <input name="endDate" class="time-input" readonly type="text" style="height:30px;border:1px solid #e5e6e7" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">任务描述：</label>
+                        <div class="col-sm-8">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="editor" type="text/plain"></div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-js" />
+    <th:block th:include="include :: bootstrap-select-js" />
+    <script th:src="@{/ueditor/ueditor.config.js}"></script>
+    <script th:src="@{/ueditor/ueditor.all.min.js}"></script>
+    <script th:src="@{/ueditor/lang/zh-cn/zh-cn.js}"></script>
+    <script type="text/javascript">
+        var ue = UE.getEditor('editor',{
+            autoHeightEnabled: false,
+            iframeCssUrl: '/ueditor/themes/iframe.css',// 引入css
+            initialFrameHeight:400,
+            initialFrameWidth:'100%'
+        });
+        var prefix = ctx + "oa/work";
+        var dept_prefix = ctx + "system/dept";
+        $("#form-work-add").validate({
+            focusCleanup: true
+        });
+
+        $(function(){
+            // 所属组织
+            $.ajax({
+                url: dept_prefix + "/getDeptListByLoginUser",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $("#deptId").append("<option value=''>请选择</option>");
+                    $.each(data, function (index, item) {
+                        var deptId = data[index].deptId;
+                        var deptName = data[index].deptName;
+                        $("#deptId").append("<option value='"+deptId+"'>"+deptName+"</option>");
+                    });
+                }
+            });
+
+        })
+
+        //监听输入框只能输入0~100（包括0和100）的数字
+        $(document).on("input propertychange","#progress",function(){
+            var limitNum = $(this).val().replace(/[^0-9.]+/g, "");
+            if(limitNum>=0&&limitNum<=100){
+                $(this).val(limitNum);
+            }else{
+                $(this).val("");
+            }
+        })
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-work-add').serialize() + "&deptId=" + $("#deptId option:selected").val() + "&content=" + ue.getContent());
+            }
+        }
+    </script>
+</body>
+</html>

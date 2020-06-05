@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.WorkStatisticsMapper">
+
+    <resultMap type="WorkStatistics" id="WorkStatisticsResult">
+        <result property="deptId" column="dept_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="userName" column="user_name"/>
+        <result property="totalNum" column="totalNum"/>
+        <result property="proceedNum" column="proceedNum"/>
+        <result property="preparedEvaluatingNum" column="preparedEvaluatingNum"/>
+        <result property="failedNum" column="failedNum"/>
+        <result property="finishNum" column="finishNum"/>
+        <result property="expiredNum" column="expiredNum"/>
+        <result property="minutes" column="minutes"/>
+    </resultMap>
+
+    <select id="selectWorklogStatisticsList" parameterType="WorkStatistics" resultMap="WorkStatisticsResult">
+        SELECT
+            x.dept_id,
+            x.dept_name,
+            x.user_id,
+            x.user_name,
+            count(w.oa_worklog_id) AS totalNum
+        FROM
+            oa_worklog w
+        INNER JOIN (
+            SELECT
+                u.user_id,
+                user_name,
+                a.dept_id,
+                a.dept_name
+            FROM
+                (
+                    SELECT
+                        d.dept_id,
+                        d.dept_name
+                    FROM
+                        sys_dept d
+                    WHERE
+                        find_in_set(#{deptId}, d.ancestors)
+                    AND d.del_flag = 0
+                    OR d.dept_id = #{deptId}
+                ) a
+            INNER JOIN sys_user u ON a.dept_id = u.dept_id
+            WHERE
+                u.del_flag = 0
+        ) x ON w.create_user_id = x.user_id
+        WHERE
+            w.del_flag = 0
+        GROUP BY
+            x.user_id
+    </select>
+
+
+    <select id="selectWorklogMinuteStatisticsList" parameterType="WorkStatistics" resultMap="WorkStatisticsResult">
+        SELECT
+            a.dept_id,
+            a.dept_name,
+            a.user_id,
+            a.user_name,
+            IFNULL(sum(a.minutes),0) as minutes
+        FROM
+        (
+            SELECT
+                x.dept_id,
+                x.dept_name,
+                x.user_id,
+                x.user_name,
+                w.minutes,
+                w.create_time
+            FROM
+                (
+                    SELECT
+                        w.create_time, w.minutes, u.user_id,u.worklog_id
+                    FROM
+                        oa_worklog_user u
+                    INNER JOIN oa_worklog w ON u.worklog_id = w.oa_worklog_id
+                    WHERE w.create_time BETWEEN #{startDate} AND #{endDate}
+                ) w
+            INNER JOIN (
+                SELECT
+                    u.user_id,
+                    user_name,
+                    a.dept_id,
+                    a.dept_name
+                FROM
+                    (
+                        SELECT
+                            d.dept_id,
+                            d.dept_name
+                        FROM
+                            sys_dept d
+                        WHERE
+                            find_in_set(
+                                #{deptId}, d.ancestors)
+                                AND d.del_flag = 0
+                                OR d.dept_id = #{deptId}
+                            ) a
+                        INNER JOIN sys_user u ON a.dept_id = u.dept_id
+                        WHERE
+                            u.del_flag = 0
+                    ) x ON w.user_id = x.user_id
+                <where>
+                    1=1
+                    <if test="cStartTime != null and cStartTime != ''">
+                        AND w.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+                    </if>
+                    <if  test="cEndTime != null and cEndTime !='' ">
+                        and w.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+                    </if>
+                </where>
+                GROUP BY
+                    w.user_id, w.worklog_id
+        ) a GROUP BY a.user_id
+    </select>
+
+    <select id="selectTaskStatistics" parameterType="WorkStatistics" resultMap="WorkStatisticsResult">
+        SELECT
+            x.dept_id,
+            x.dept_name,
+            x.user_id,
+            x.user_name,
+            count(t.oa_task_id) AS totalNum,
+        sum(
+            CASE t. STATUS
+                WHEN (
+                t. STATUS = 1
+            AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(t.end_date, '%Y-%m-%d')
+            ) THEN
+              1
+            ELSE
+              0
+            END
+        ) AS proceedNum,
+        sum(
+            CASE t. STATUS
+              WHEN 2 THEN
+              1
+            ELSE
+              0
+            END
+        ) AS preparedEvaluatingNum,
+        sum(
+            CASE t. STATUS
+              WHEN 3 THEN
+              1
+            ELSE
+              0
+            END
+        ) AS failedNum,
+        sum(
+            CASE t. STATUS
+            WHEN 4 THEN
+              1
+            ELSE
+              0
+            END
+        ) AS finishNum,
+        sum(
+            CASE
+            WHEN (
+              t. STATUS = 1
+            AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt; DATE_FORMAT(t.end_date, '%Y-%m-%d')
+            ) THEN
+              1
+            ELSE
+              0
+            END
+        ) AS expiredNum
+        FROM
+          oa_task t
+        INNER JOIN (
+            SELECT
+                u.user_id,
+                user_name,
+                a.dept_id,
+                a.dept_name
+            FROM
+            (
+                SELECT
+                  d.dept_id,
+                  d.dept_name
+                FROM
+                  sys_dept d
+                WHERE
+                  find_in_set(#{deptId}, d.ancestors)
+                AND d.del_flag = 0
+                OR d.dept_id = #{deptId}
+            ) a
+            INNER JOIN sys_user u ON a.dept_id = u.dept_id
+            WHERE
+            u.del_flag = 0
+        ) x ON t.sponsor_id = x.user_id
+        <where>
+          t.del_flag = 0
+            <if test="cStartTime != null and cStartTime != ''">
+                AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if  test="cEndTime != null and cEndTime !='' ">
+                and t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+        </where>
+        GROUP BY
+          x.user_id
+    </select>
+
+    <select id="selectWorkStatisticsList" parameterType="WorkStatistics" resultMap="WorkStatisticsResult">
+        SELECT
+            x.dept_id,
+            x.dept_name,
+            x.user_id,
+            x.user_name,
+        count(w.oa_work_id) AS totalNum,
+        sum(
+          CASE w. STATUS
+            WHEN ( w. STATUS = 1 AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(w.end_date, '%Y-%m-%d'))
+          THEN
+            1
+          ELSE
+            0 END
+        ) AS proceedNum,
+        sum(
+            CASE w. STATUS
+            WHEN 2 THEN
+              1
+            ELSE
+              0
+            END
+        ) AS finishNum,
+        sum(
+            CASE
+            WHEN (
+              w. STATUS = 1
+            AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt; DATE_FORMAT(w.end_date, '%Y-%m-%d')
+            ) THEN
+              1
+            ELSE
+              0
+            END
+        ) AS expiredNum
+        FROM
+          oa_work w
+        INNER JOIN (
+            SELECT
+                u.user_id,
+                user_name,
+                a.dept_id,
+                a.dept_name
+            FROM
+            (
+              SELECT
+                d.dept_id,
+                d.dept_name
+            FROM
+                sys_dept d
+            WHERE
+                find_in_set(#{deptId}, d.ancestors)
+                AND d.del_flag = 0
+                OR d.dept_id = #{deptId}
+            ) a
+            INNER JOIN sys_user u ON a.dept_id = u.dept_id
+            WHERE  u.del_flag = 0
+        ) x ON w.sponsor_id = x.user_id
+        <where>
+            w.del_flag = 0
+            <if test="cStartTime != null and cStartTime != ''">
+                AND w.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if  test="cEndTime != null and cEndTime !='' ">
+                and w.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+        </where>
+        GROUP BY x.user_id
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('我的论坛')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+</head>
+<style>
+    img{
+        width: 80px;
+        height: 80px;
+    }
+    .dtitle{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .disf{
+        display: flex;
+    }
+    .pl{
+        padding-left: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;;
+    }
+    .pt{
+        padding-top: 5px;
+        padding-bottom: 5px;
+        border-bottom: solid 1px;
+        border-color: #dddddd;
+    }
+    .content{
+        word-break: break-all;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+</style>
+<body class="gray-bg">
+
+    <div class="container-div">
+         <div class="row" style="display: flex;background: white;">
+             <div style="width: 20%"></div>
+             <div class="col-sm-12 search-collapse">
+                 <div style="overflow-y: auto;">
+                     <input type="hidden" th:value="${forumMessageId}" name="forumMessageId" id="forumMessageId"/>
+                     <input type="hidden" th:value="${forumId}" name="forumId" id="forumId"/>
+                     <input type="hidden" th:value="${collId}" name="collId" id="collId"/>
+                     <div th:object="${forumMessage}">
+                         <div  style="text-align: center;font-size: x-large;">
+                             <span th:text="*{titile}">标题</span>
+                             <i title="收藏" class="glyphicon glyphicon-heart-empty" style="float:right;color: red; cursor:pointer;" id="redColl"  onclick="shouchang()"></i>
+                             <i title="收藏" class="glyphicon glyphicon-heart-empty" alt="收藏" style="float:right; cursor:pointer;" id="coll" onclick="shouchang()"></i>
+                         </div>
+                         <div style="text-align: center;padding: 10px;">发帖人:<span th:text="*{userName}">用户</span><span>&nbsp;&nbsp;发布时间: &nbsp;&nbsp;<span th:text="*{#dates.format(createTime,'yyyy-MM-dd HH:mm:ss')}"></span></span></div>
+                         <div style="padding: 10px;"><span th:utext="*{context}">内容</span></div>
+                     </div>
+                     <div id="editor" type="text/plain"></div>
+                     <div style="padding-top: 8px;text-align: right;margin-right: 10px;">
+                         <a class="btn btn-primary btn-sm"  onclick="submitHandler()">&nbsp;评论</a>
+                     </div>
+                     <div>
+                         <!-- 分页容器：显示数据 -->
+                         <div id="htmlDiv"></div>
+                         <!-- 分页容器： 显示分页按钮-->
+                         <div class="col-lg-12" align="center">
+                             <!-- 注意:3版本的分页容器标签是<ul>，2版本的容器标签是<div> -->
+                             <ul id="mypage"></ul>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <div style="width: 20%"></div>
+         </div>
+     </div>
+
+    <th:block th:include="include :: footer" />
+     <th:block th:include="include :: select2-js" />
+     <th:block th:include="include :: bootstrap-select-js" />
+     <script th:src="@{/ueditor/ueditor.config.js}"></script>
+     <script th:src="@{/ueditor/ueditor.all.min.js}"></script>
+     <script th:src="@{/ueditor/lang/zh-cn/zh-cn.js}"></script>
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('oa:message:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('oa:message:remove')}]];
+        var prefix = ctx + "oa/message";
+        var ue = UE.getEditor('editor',{
+            autoHeightEnabled: false,
+            iframeCssUrl: '/ueditor/themes/iframe.css',// 引入css
+            initialFrameHeight:200,
+            initialFrameWidth:'100%'
+        });
+        var prefix = ctx + "oa/message"
+        $(function() {
+            pageStart("/oa/forumDetails/replyList");
+            queryIsColl();
+        });
+        $("#form-notice-add").validate({
+            focusCleanup: true
+        });
+
+
+        function pageStart(url) {//分页函数
+            var forumMessageId = $("#forumMessageId").val();
+            $.ajax({ //去后台查询第一页数据
+                type: "post",
+                url: url,
+                dataType: "json",
+                data: {pageNum: '1',pageSize:'7', id: forumMessageId}, //参数：当前页为1
+                success: function (data) {
+                    appendHtml(data.list)//处理第一页的数据
+                    var pags = data.pages;
+                    var currentPage = data.pageNum;
+                    if(pags===0){
+                        pags=1;
+                    }
+                    if(currentPage===0){
+                        currentPage = 1;
+                    }
+                    var options = {//根据后台返回的分页相关信息，设置插件参数
+                        bootstrapMajorVersion: 3, //如果是bootstrap3版本需要加此标识，并且设置包含分页内容的DOM元素为UL,如果是bootstrap2版本，则DOM包含元素是DIV
+                        currentPage: currentPage, //当前页数
+                        totalPages: pags, //总页数
+                        numberOfPages: 5,//每页记录数
+                        itemTexts: function (type, page, current) {//设置分页按钮显示字体样式
+                            switch (type) {
+                                case "first":
+                                    return "首页";
+                                case "prev":
+                                    return "上一页";
+                                case "next":
+                                    return "下一页";
+                                case "last":
+                                    return "末页";
+                                case "page":
+                                    return page;
+                            }
+                        },
+                        onPageClicked: function (event, originalEvent, type, pageNum) {//分页按钮点击事件
+                            $.ajax({//根据page去后台加载数据
+                                url: url,
+                                type: "post",
+                                dataType: "json",
+                                data: {"pageNum": pageNum,id: forumMessageId,pageSize:'7'},
+                                success: function (data) {
+                                    appendHtml(data.list);//处理数据
+                                }
+                            });
+                        }
+                    };
+                    $('#mypage').bootstrapPaginator(options);//设置分页
+                }
+            })
+        }
+
+
+        function appendHtml(list) {//此函数用于处理后台返回的数据，根据自己需求来实现页面拼接
+            $('#htmlDiv').empty();
+            var tableShow = '';
+            if(list==null || list.length==0){
+                tableShow += '<span>暂无数据</span>';
+            }else{
+                for (var i = 0; i < list.length; i++) {
+                    tableShow +=' <div class="pt">';
+                    tableShow +='<div>';
+                    tableShow+=' <span>'+list[i].userName+'</span>:&nbsp;&nbsp;<span>'+list[i].replyMessage+'</span>';
+                    tableShow+='</div>';
+                    tableShow +='<div>';
+                    tableShow+='<span>'+list[i].createTime+'</span>';
+                    tableShow+='</div>';
+                    tableShow +='</div>';
+                }
+            }
+            $('#htmlDiv').html(tableShow)
+        }
+
+        //评论
+        function submitHandler() {
+            var replyMessage = ue.getContent();
+            var forumId = $("#forumId").val();
+            var forumMessageId = $("#forumMessageId").val();
+            if(replyMessage.length<=0){
+                return;
+            }
+            var data={
+                replyMessage:replyMessage,
+                forumId:forumId,
+                forumMessageId:forumMessageId
+            };
+            $.ajax({
+                url: "/oa/forumDetails/add",
+                type: "post",
+                data:data,
+                dataType: "json",
+                success: function (data) {
+                    if(data.code==0){
+                        pageStart("/oa/forumDetails/replyList");
+                    }
+                }
+            });
+        }
+
+        //收藏
+       function shouchang(){
+            var id = $("#collId").val();
+            var forumMessageId = $("#forumMessageId").val();
+            var forumId = $("#forumId").val();
+            var data={};
+            //如果有值就添加否则删除
+            if(id){
+               data={
+                   id:id
+               }
+            }else{
+                data={
+                    forumMessageId:forumMessageId,
+                    forumId:forumId
+                }
+            }
+           $.ajax({
+               url: "/oa/forumDetails/addColl",
+               type: "post",
+               data:data,
+               dataType: "json",
+               success: function (data) {
+                   if(data.code==0){
+                       queryIsColl();
+                   }
+               }
+           });
+        }
+
+        //查看是否收藏
+        function  queryIsColl(){
+            var forumMessageId = $("#forumMessageId").val();
+            var data={forumMessageId:forumMessageId};
+            $.ajax({
+                url: "/oa/forumDetails/queryIsColl",
+                type: "post",
+                data:data,
+                dataType: "json",
+                success: function (data) {
+                    if(data.code==0){
+                       if(data.data){
+                           $("#redColl").show();
+                           $("#coll").hide();
+                           $("#collId").val(data.data);
+                       }else{
+                           $("#redColl").hide();
+                           $("#coll").show();
+                           $("#collId").val('');
+                       }
+                    }
+                }
+            });
+        }
+
+
+        //发帖
+        function fatie() {
+            var id = $("#forumId").val();
+            var url = ctx + "oa/forumCreate/"+id;
+            $.modal.open("发帖",url,800,800)
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改任务督办')" />
+    <th:block th:include="include :: header('下拉框')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+    <link th:href="@{/css/ru-ui.css}" rel="stylesheet"/>
+    <link th:href="@{/css/main00.css}" rel="stylesheet"/>
+    <style type="text/css">
+        #editor {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-task-edit" th:object="${task}">
+            <input name="oaTaskId" th:field="*{oaTaskId}" type="hidden">
+            <input id="content" th:value="*{content}" class="form-control" type="hidden">
+            <div class="tk_showtab">
+                <table border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td align="right">来源：</td>
+                        <td colspan="3">
+                            <select name="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" required>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{sourceType}"></option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="right">组织：</td>
+                        <td colspan="3">
+                            <input id="deptIdInput" th:value="*{deptId}" class="form-control" type="hidden">
+                            <select id="deptId" class="form-control" onchange="getSubDeptEmp()" required>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="right">任务名称：</td>
+                        <td colspan="3">
+                            <input name="taskName" th:field="*{taskName}" class="form-control" type="text" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">集体措施：</td>
+                        <td colspan="3">
+                            <select name="isTeam" class="form-control m-b" th:with="type=${@dict.getType('oa_is_team')}" required>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{isTeam}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">重要程度：</td>
+                        <td colspan="3">
+                            <div class="radio-box" th:each="dict : ${@dict.getType('oa_important_level')}">
+                                <input type="radio" th:id="${dict.dictCode}" name="importantLevel" th:value="${dict.dictValue}" th:field="*{importantLevel}">
+                                <label th:for="${dict.dictCode}" th:text="${dict.dictLabel}"></label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">困难程度：</td>
+                        <td colspan="3">
+                            <div class="radio-box" th:each="dict : ${@dict.getType('oa_difficult_level')}">
+                                <input type="radio" th:id="${dict.dictCode}" name="difficultLevel" th:value="${dict.dictValue}" th:field="*{difficultLevel}">
+                                <label th:for="${dict.dictCode}" th:text="${dict.dictLabel}"></label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">负责人：</td>
+                        <td colspan="3">
+                            <select id="executorId" class="form-control select2-multiple" multiple>
+                                <option th:each="executor:${executorIdList}" th:value="${executor.userId}" th:text="${executor.userName}" th:selected="${executor.flag}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">评价人：</td>
+                        <td colspan="3">
+                            <select id="appraiserId" class="form-control select2-multiple" multiple>
+                                <option th:each="appraiser:${appraiserIdList}" th:value="${appraiser.userId}" th:text="${appraiser.userName}" th:selected="${appraiser.flag}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">参与人：</td>
+                        <td colspan="3">
+                            <select id="partUserId" class="form-control select2-multiple" multiple>
+                                <option th:each="part:${partUserIdList}" th:value="${part.userId}" th:text="${part.userName}" th:selected="${part.flag}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">共享人：</td>
+                        <td colspan="3">
+                            <select id="shareUserId" class="form-control select2-multiple" multiple>
+                                <option th:each="share:${shareUserIdList}" th:value="${share.userId}" th:text="${share.userName}" th:selected="${share.flag}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">开始日期：</td>
+                        <td>
+                            <input th:field="*{startDate}" name="startDate" class="time-input" readonly type="text" style="height:30px;border:1px solid #e5e6e7" required>
+                        </td>
+                        <td>截止日期：</td>
+                        <td>
+                            <input th:field="*{endDate}" name="endDate" class="time-input" readonly type="text" style="height:30px;border:1px solid #e5e6e7" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">任务详情：</td>
+                        <td colspan="3">
+                            <textarea name="detail" class="form-control" type="text" maxlength="2000" required style="height:160px;border:1px solid #e5e6e7">[[*{detail}]]</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right">任务要求：</td>
+                        <td colspan="3">
+                        </td>
+                    </tr>
+                </table>
+                <div id="editor" type="text/plain"></div>
+            </div>
+
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-js" />
+    <th:block th:include="include :: bootstrap-select-js" />
+    <script th:src="@{/ueditor/ueditor.config.js}"></script>
+    <script th:src="@{/ueditor/ueditor.all.min.js}"></script>
+    <script th:src="@{/ueditor/lang/zh-cn/zh-cn.js}"></script>
+    <script type="text/javascript">
+        var ue = UE.getEditor('editor',{
+            autoHeightEnabled: false,
+            iframeCssUrl: '/ueditor/themes/iframe.css',// 引入css
+            initialFrameHeight:400,
+            initialFrameWidth:'100%'
+        });
+        // editor准备好之后才可以使用
+        ue.addListener("ready", function () {
+            //赋值
+            ue.setContent($("#content").val());
+
+        });
+        var prefix = ctx + "oa/task";
+        var user_prefix = ctx + "system/user";
+        var dept_prefix = ctx + "system/dept";
+        $("#form-task-edit").validate({
+            focusCleanup: true
+        });
+
+        $(function(){
+            var deptIdInput = $("#deptIdInput").val();
+            $('#executorId').select2({
+                placeholder: "请选择执行人",
+                allowClear: true
+            });
+            $('#appraiserId').select2({
+                placeholder: "请选择评价人",
+                allowClear: true
+            });
+
+            $('#partUserId').select2({
+                placeholder: "请选择参与人",
+                allowClear: true
+            });
+            $('#shareUserId').select2({
+                placeholder: "请选择分享人",
+                allowClear: true
+            });
+
+            // 所属组织
+            $.ajax({
+                url: dept_prefix + "/getDeptListByLoginUser",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $.each(data, function (index, item) {
+                        var deptId = data[index].deptId;
+                        var deptName = data[index].deptName;
+                        if (deptIdInput == deptId){
+                            $("#deptId").append("<option selected='selected' value='"+deptId+"'>"+deptName+"</option>");
+                        } else {
+                            $("#deptId").append("<option value='"+deptId+"'>"+deptName+"</option>");
+                        }
+                    });
+                }
+            });
+
+        })
+
+        function getSubDeptEmp() {
+            $("#executorId").empty();
+            $("#appraiserId").empty();
+            $("#partUserId").empty();
+            $("#shareUserId").empty();
+            // 查询下级员工
+            $.ajax({
+                url: user_prefix + "/selectJuniorUserByUser/" + $("#deptId option:selected").val(),
+                data: {},
+                type: "get",
+                dataType: "json",
+                success: function (data) {
+                    $.each(data, function (index, item) {
+                        var userId = data[index].userId;
+                        var userName = data[index].userName;
+                        $("#executorId").append("<option value='" + userId + "'>" + userName + "</option>");
+                        $("#appraiserId").append("<option value='" + userId + "'>" + userName + "</option>");
+                        $("#partUserId").append("<option value='" + userId + "'>" + userName + "</option>");
+                        $("#shareUserId").append("<option value='" + userId + "'>" + userName + "</option>");
+                    });
+                }
+            })
+        }
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                var executorIdArr = $('#executorId').select2('val');
+                var appraiserId = $('#appraiserId').select2('val');
+                var ar = executorIdArr.filter(function(n) {
+                    return appraiserId.indexOf(n) != -1
+                });
+                if (ar.length > 0){
+                    $.modal.alertWarning("执行人和评价人不能为同一人");
+                    return
+                }
+                var data = $("#form-task-edit").serializeArray();
+                var executorIds = $.form.selectSelects("executorId");
+                var appraiserIds = $.form.selectSelects("appraiserId");
+                var partUserIds = $.form.selectSelects("partUserId");
+                var shareUserIds = $.form.selectSelects("shareUserId");
+                data.push({"name": "executorIds", "value": executorIds});
+                data.push({"name": "appraiserIds", "value": appraiserIds});
+                data.push({"name": "partUserIds", "value": partUserIds});
+                data.push({"name": "shareUserIds", "value": shareUserIds});
+                data.push({"name": "content", "value": ue.getContent()});
+                data.push({"name": "deptId", "value": $("#deptId option:selected").val()});
+                $.operate.save(prefix + "/edit", data);
+            }
+        }
+
+    </script>
+</body>
+</html>

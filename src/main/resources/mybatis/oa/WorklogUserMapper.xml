@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.WorklogUserMapper">
+
+    <resultMap type="WorklogUser" id="WorklogUserResult">
+        <result property="worklogId"    column="worklog_id"    />
+        <result property="userId"    column="user_id"    />
+    </resultMap>
+
+    <sql id="selectWorklogUserVo">
+        select worklog_id, user_id from oa_worklog_user
+    </sql>
+
+    <select id="selectWorklogUserList" parameterType="WorklogUser" resultMap="WorklogUserResult">
+        <include refid="selectWorklogUserVo"/>
+        <where>
+            <if test="worklogId != null "> and worklog_id = #{worklogId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+        </where>
+    </select>
+
+    <select id="selectWorklogUserById" parameterType="Long" resultMap="WorklogUserResult">
+        <include refid="selectWorklogUserVo"/>
+        where worklog_id = #{worklogId}
+    </select>
+
+    <insert id="insertWorklogUser" parameterType="WorklogUser">
+        insert into oa_worklog_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="worklogId != null ">worklog_id,</if>
+            <if test="userId != null ">user_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="worklogId != null ">#{worklogId},</if>
+            <if test="userId != null ">#{userId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWorklogUser" parameterType="WorklogUser">
+        update oa_worklog_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null ">user_id = #{userId},</if>
+        </trim>
+        where worklog_id = #{worklogId}
+    </update>
+
+    <delete id="deleteWorklogUserById" parameterType="Long">
+        delete from oa_worklog_user where worklog_id = #{worklogId}
+    </delete>
+
+    <delete id="deleteWorklogUserByIds" parameterType="String">
+        delete from oa_worklog_user where worklog_id in
+        <foreach item="worklogId" collection="array" open="(" separator="," close=")">
+            #{worklogId}
+        </foreach>
+    </delete>
+
+    <!-- 批量插入工作日志用户 -->
+    <insert id ="insertWorklogUserBatch" parameterType="java.util.List" >
+        insert into oa_worklog_user
+        (worklog_id, user_id, create_time )
+        values
+        <foreach collection ="list" item="worklog" index= "index" separator =",">
+            (
+            #{worklog.worklogId}, #{worklog.userId}, sysdate()
+            )
+        </foreach >
+    </insert>
+
+</mapper>

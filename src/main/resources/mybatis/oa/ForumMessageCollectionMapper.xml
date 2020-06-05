@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.ForumMessageCollectionMapper">
+    
+    <resultMap type="ForumMessageCollection" id="ForumMessageCollectionResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="forumMessageId"    column="forum_message_id"    />
+        <result property="forumId"    column="forum_id"    />
+        <result property="status"    column="status"    />
+        <result property="updateUser"    column="update_user"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="userName" column="user_name"/>
+        <result property="forumTitle" column="forum_title"/>
+        <result property="plateType" column="plate_type"/>
+        <result property="titile"    column="titile"    />
+        <result property="context"    column="context"    />
+    </resultMap>
+
+    <resultMap type="ForumMessage" id="ForumMessageResult">
+        <result property="id"    column="id"    />
+        <result property="forumId"    column="forum_id"    />
+        <result property="titile"    column="titile"    />
+        <result property="context"    column="context"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createUser"    column="create_user"    />
+        <result property="status"    column="status"    />
+        <result property="updateUser"    column="update_user"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="isTalk"    column="is_talk"    />
+        <result property="isZd"    column="is_zd"    />
+        <result property="zdCreateTime"    column="zd_create_time"    />
+        <result property="userName" column="user_name"/>
+        <result property="forumTitle" column="forum_title"/>
+        <result property="plateType" column="plate_type"/>
+        <result property="readNum" column="read_num"/>
+        <result property="replyNum" column="reply_num"/>
+        <result property="collNum" column="coll_num"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="deptId" column="dept_id"/>
+    </resultMap>
+
+
+    <sql id="selectForumMessageCollectionVo">
+        select id, user_id, create_time, forum_message_id, forum_id, status, update_user, update_time from forum_message_collection
+    </sql>
+
+    <select id="selectForumMessageCollectionList" parameterType="ForumMessageCollection" resultMap="ForumMessageCollectionResult">
+        SELECT fmc.*,s.user_name,f.title forum_title,f.plate_type,fm.titile,fm.context FROM forum_message_collection fmc
+        INNER JOIN forum_message fm on fmc.forum_message_id = fm.id
+        INNER JOIN forum f on fm.forum_id = f.id
+        INNER JOIN sys_user s on fmc.user_id = s.user_id
+        <where>
+            <if test="userId != null "> and fmc.user_id = #{userId}</if>
+            <if test="forumMessageId != null "> and fmc.forum_message_id = #{forumMessageId}</if>
+            <if test="forumId != null "> and fm.forum_id = #{forumId}</if>
+            <if test="status != null "> and fmc.status = #{status}</if>
+            <if test="createUser != null "> and fmc.user_id = #{createUser}</if>
+            <if test="updateUser != null "> and fmc.update_user = #{updateUser}</if>
+            <if test="plateType != null "> and f.plate_type = #{plateType}</if>
+            and fm.`status`=0 and f.`status`=0 order by fmc.create_time desc
+        </where>
+    </select>
+
+    <select id="selectClassForumMessageCollectionList" parameterType="ForumMessageCollection" resultMap="ForumMessageCollectionResult">
+        SELECT fmc.*,s.user_name,f.dept_name forum_title,fm.titile,fm.context FROM forum_message_collection fmc
+        INNER JOIN forum_message fm on fmc.forum_message_id = fm.id
+        INNER JOIN sys_dept f on fm.forum_id = f.dept_id
+        INNER JOIN sys_user s on fmc.user_id = s.user_id
+        <where>
+            <if test="userId != null "> and fmc.user_id = #{userId}</if>
+            <if test="forumMessageId != null "> and fmc.forum_message_id = #{forumMessageId}</if>
+            <if test="forumId != null "> and fm.forum_id = #{forumId}</if>
+            <if test="status != null "> and fmc.status = #{status}</if>
+            <if test="createUser != null "> and fmc.user_id = #{createUser}</if>
+            <if test="updateUser != null "> and fmc.update_user = #{updateUser}</if>
+            and fm.`status`=0  order by fmc.create_time desc
+        </where>
+    </select>
+
+
+    <select id="selectMyForumMessageCollectionList" parameterType="ForumMessage" resultMap="ForumMessageResult">
+        SELECT  DISTINCT f.* ,s.user_name,fo.title  forum_title,fo.plate_type,ry.reply_num,rd.read_num,cl.coll_num  from forum_message f
+        inner JOIN forum fo on f.forum_id = fo.id
+        LEFT JOIN sys_user s on f.create_user = s.user_id
+        left join (
+        SELECT fm.id,COUNT(1) as reply_num from forum_message_reply fmr INNER JOIN forum_message fm on fmr.forum_message_id = fm.id WHERE fm.`status`=0 GROUP BY fmr.forum_message_id
+        ) ry
+        on f.id = ry.id
+        left join (
+        SELECT fm.id,COUNT(1) as read_num from forum_message_read fmr INNER JOIN forum_message fm on fmr.forum_message_id = fm.id WHERE fm.`status`=0 GROUP BY fmr.forum_message_id
+        ) rd on f.id = rd.id
+        left join (
+        SELECT fm.id,COUNT(1) as coll_num from forum_message_collection fmc INNER JOIN forum_message fm on fmc.forum_message_id = fm.id WHERE fm.`status`=0 GROUP BY fmc.forum_message_id
+        ) cl on f.id = cl.id
+        INNER JOIN forum_message_collection fmc on fmc.forum_message_id = f.id
+        <where>
+            <if test="forumId != null "> and f.forum_id = #{forumId}</if>
+            <if test="isTalk != null "> and f.is_talk = #{isTalk}</if>
+            <if test="titile != null  and titile != ''"> and f.titile like concat('%', #{titile}, '%')</if>
+            <if test="context != null  and context != ''"> and f.context = #{context}</if>
+            <if test="createUser != null "> and fmc.user_id = #{createUser}</if>
+            <if test="status != null "> and f.status = #{status}</if>
+            <if test="updateUser != null "> and f.update_user = #{updateUser}</if>
+            <if test="plateType != null "> and fo.plate_type = #{plateType}</if>
+            <if test="userName != null  and userName != ''">and s.user_name like concat('%', #{userName}, '%')</if>
+            and f.status = 0 and fo.status=0 order by f.create_time,f.update_time,rd.read_num  desc
+        </where>
+    </select>
+
+    <select id="selectMyClassForumMessageCollectionList" parameterType="ForumMessage" resultMap="ForumMessageResult">
+          SELECT  DISTINCT f.* ,s.user_name,fo.dept_name  forum_title,d.dept_name,ry.reply_num,rd.read_num,cl.coll_num  from forum_message f
+            inner JOIN sys_dept fo on f.forum_id = fo.dept_id
+                    inner JOIN sys_dept d on d.dept_id = fo.parent_id
+            LEFT JOIN sys_user s on f.create_user = s.user_id
+            left join (
+            SELECT fm.id,COUNT(1) as reply_num from forum_message_reply fmr INNER JOIN forum_message fm on fmr.forum_message_id = fm.id WHERE fm.`status`=0 GROUP BY fmr.forum_message_id
+            ) ry
+            on f.id = ry.id
+            left join (
+            SELECT fm.id,COUNT(1) as read_num from forum_message_read fmr INNER JOIN forum_message fm on fmr.forum_message_id = fm.id WHERE fm.`status`=0 GROUP BY fmr.forum_message_id
+            ) rd on f.id = rd.id
+            left join (
+            SELECT fm.id,COUNT(1) as coll_num from forum_message_collection fmc INNER JOIN forum_message fm on fmc.forum_message_id = fm.id WHERE fm.`status`=0 GROUP BY fmc.forum_message_id
+            ) cl on f.id = cl.id
+            INNER JOIN forum_message_collection fmc on fmc.forum_message_id = f.id
+            <where>
+                <if test="forumId != null "> and f.forum_id = #{forumId}</if>
+                <if test="isTalk != null "> and f.is_talk = #{isTalk}</if>
+                <if test="titile != null  and titile != ''"> and f.titile like concat('%', #{titile}, '%')</if>
+                <if test="context != null  and context != ''"> and f.context = #{context}</if>
+                <if test="createUser != null "> and fmc.user_id = #{createUser}</if>
+                <if test="status != null "> and f.status = #{status}</if>
+                <if test="updateUser != null "> and f.update_user = #{updateUser}</if>
+                <if test="userName != null  and userName != ''">and s.user_name like concat('%', #{userName}, '%')</if>
+                and f.status = 0 order by f.create_time,f.update_time,rd.read_num  desc
+            </where>
+    </select>
+    
+    <select id="selectForumMessageCollectionById" parameterType="Long" resultMap="ForumMessageCollectionResult">
+        <include refid="selectForumMessageCollectionVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertForumMessageCollection" parameterType="ForumMessageCollection" useGeneratedKeys="true" keyProperty="id">
+        insert into forum_message_collection
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null ">user_id,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="forumMessageId != null ">forum_message_id,</if>
+            <if test="forumId != null ">forum_id,</if>
+            <if test="status != null ">status,</if>
+            <if test="updateUser != null ">update_user,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null ">#{userId},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="forumMessageId != null ">#{forumMessageId},</if>
+            <if test="forumId != null ">#{forumId},</if>
+            <if test="status != null ">#{status},</if>
+            <if test="updateUser != null ">#{updateUser},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateForumMessageCollection" parameterType="ForumMessageCollection">
+        update forum_message_collection
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null ">user_id = #{userId},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="forumMessageId != null ">forum_message_id = #{forumMessageId},</if>
+            <if test="forumId != null ">forum_id = #{forumId},</if>
+            <if test="status != null ">status = #{status},</if>
+            <if test="updateUser != null ">update_user = #{updateUser},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteForumMessageCollectionById" parameterType="Long">
+        delete from forum_message_collection where id = #{id}
+    </delete>
+
+    <delete id="deleteForumMessageCollectionByIds" parameterType="String">
+        delete from forum_message_collection where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper>

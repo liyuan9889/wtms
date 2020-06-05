@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.WorklogMapper">
+    
+    <resultMap type="Worklog" id="WorklogResult">
+        <result property="oaWorklogId"    column="oa_worklog_id"    />
+        <result property="createUserId"    column="create_user_id"    />
+        <result property="createUserName"    column="create_user_name"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="workType"    column="work_type"    />
+        <result property="addrContent"    column="addr_content"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="workDate"    column="work_date"    />
+        <result property="minutes"    column="minutes"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="leaderName"    column="leader_name"    />
+
+        <result property="searchType"    column="searchType"    />
+        <result property="num"    column="num"    />
+    </resultMap>
+
+    <sql id="selectWorklogVo">
+        select oa_worklog_id, create_user_id, create_user_name, dept_id, work_type, addr_content, start_time, end_time, work_date, minutes, create_time, update_time from oa_worklog
+    </sql>
+
+    <!--<select id="selectWorklogList" parameterType="Worklog" resultMap="WorklogResult">
+        select IFNULL(x.user_name,'') as leader_name, t.oa_worklog_id, t.create_user_id, t.create_user_name, t.dept_id, t.work_type, t.addr_content, t.start_time, t.end_time, t.work_date,
+        t.minutes, t.create_time,
+        t.update_time from oa_worklog t LEFT JOIN oa_worklog_user u ON t.oa_worklog_id = u.worklog_id
+        LEFT JOIN
+        (
+            SELECT GROUP_CONCAT(u.user_name) as user_name, u.dept_id FROM sys_dept d INNER JOIN sys_user u ON d.dept_id=u.dept_id INNER JOIN sys_user_role r ON u.user_id=r.user_id
+            WHERE u.del_flag=0 AND d.del_flag=0 AND r.role_id=3 GROUP BY u.dept_id
+        ) x ON t.dept_id=x.dept_id
+        <if test="deptId != null ">
+            LEFT JOIN (
+                SELECT
+                    d.dept_id,
+                    d.dept_name
+                FROM
+                  sys_dept d
+                WHERE
+                  find_in_set(#{deptId}, d.ancestors)
+                AND d.del_flag = 0 OR d.dept_id = #{deptId}
+            ) a ON t.dept_id = a.dept_id
+        </if>
+        <where>
+            t.del_flag=0
+            <if test="createUserId != null "> and t.create_user_id = #{createUserId}</if>
+            <if test="createUserName != null and createUserName != ''"> and t.create_user_name like concat('%',#{createUserName},'%')</if>
+            <if test="workType != null "> and t.work_type = #{workType}</if>
+            <if test="addrContent != null  and addrContent != ''"> and t.addr_content = #{addrContent}</if>
+            <if test="cStartTime != null and cStartTime != ''">
+                AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if test="cEndTime != null and cEndTime !='' ">
+                AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+            <if test="workDate != null "> and t.work_date = #{workDate}</if>
+        </where>
+        GROUP BY t.oa_worklog_id
+        ORDER BY t.create_time DESC
+    </select>-->
+
+    <select id="selectWorklogList" parameterType="Worklog" resultMap="WorklogResult">
+        select IFNULL(x.user_name,'') as leader_name, t.oa_worklog_id, t.create_user_id, t.create_user_name, t.dept_id, t.work_type, t.addr_content, t.start_time, t.end_time, t.work_date,
+        t.minutes, t.create_time, t.update_time from oa_worklog t LEFT JOIN oa_worklog_user u ON t.oa_worklog_id = u.worklog_id
+        LEFT JOIN
+        (
+            SELECT GROUP_CONCAT(u.user_name) as user_name, u.dept_id FROM sys_dept d INNER JOIN sys_user u ON d.dept_id=u.dept_id INNER JOIN sys_user_role r ON u.user_id=r.user_id
+            WHERE u.del_flag=0 AND d.del_flag=0 AND r.role_id=3 GROUP BY u.dept_id
+        ) x ON t.dept_id=x.dept_id
+        <where>
+            t.del_flag=0
+            <if test="deptId != null ">
+                AND t.dept_id=#{deptId}
+            </if>
+            <if test="createUserId != null "> and t.create_user_id = #{createUserId}</if>
+            <if test="userName != null and userName != ''"> and t.create_user_name like concat('%',#{userName},'%')</if>
+            <if test="createUserName != null and createUserName != ''"> and t.create_user_name like concat('%',#{createUserName},'%')</if>
+            <if test="workType != null "> and t.work_type = #{workType}</if>
+            <if test="addrContent != null  and addrContent != ''"> and t.addr_content = #{addrContent}</if>
+            <if test="cStartTime != null and cStartTime != ''">
+                AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if test="cEndTime != null and cEndTime !='' ">
+                AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+            <if test="workDate != null "> and t.work_date = #{workDate}</if>
+        </where>
+        GROUP BY t.oa_worklog_id
+        ORDER BY t.create_time DESC
+    </select>
+
+    <select id="selectWorklogById" parameterType="Long" resultMap="WorklogResult">
+        <include refid="selectWorklogVo"/>
+        where oa_worklog_id = #{oaWorklogId}
+    </select>
+        
+    <insert id="insertWorklog" parameterType="Worklog" useGeneratedKeys="true" keyProperty="oaWorklogId">
+        insert into oa_worklog
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createUserId != null ">create_user_id,</if>
+            <if test="createUserName != null and createUserName != ''">create_user_name,</if>
+            <if test="deptId != null ">dept_id,</if>
+            <if test="workType != null ">work_type,</if>
+            <if test="addrContent != null  and addrContent != ''">addr_content,</if>
+            <if test="startTime != null  and startTime != ''">start_time,</if>
+            <if test="endTime != null  and endTime != ''">end_time,</if>
+            <if test="workDate != null ">work_date,</if>
+            <if test="minutes != null and minutes != '' ">minutes,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createUserId != null ">#{createUserId},</if>
+            <if test="createUserName != null and createUserName != ''">#{createUserName},</if>
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="workType != null ">#{workType},</if>
+            <if test="addrContent != null  and addrContent != ''">#{addrContent},</if>
+            <if test="startTime != null  and startTime != ''">#{startTime},</if>
+            <if test="endTime != null  and endTime != ''">#{endTime},</if>
+            <if test="workDate != null ">#{workDate},</if>
+            <if test="minutes != null and minutes != '' ">#{minutes},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWorklog" parameterType="Worklog">
+        update oa_worklog
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="createUserId != null ">create_user_id = #{createUserId},</if>
+            <if test="createUserName != null and createUserName != ''">create_user_name = #{createUserName},</if>
+            <if test="deptId != null ">dept_id = #{deptId},</if>
+            <if test="workType != null ">work_type = #{workType},</if>
+            <if test="addrContent != null  and addrContent != ''">addr_content = #{addrContent},</if>
+            <if test="startTime != null  and startTime != ''">start_time = #{startTime},</if>
+            <if test="endTime != null  and endTime != ''">end_time = #{endTime},</if>
+            <if test="workDate != null ">work_date = #{workDate},</if>
+            <if test="minutes != null and minutes != '' ">minutes = #{minutes},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_worklog_id = #{oaWorklogId}
+    </update>
+
+    <delete id="deleteWorklogById" parameterType="Long">
+        delete from oa_worklog where oa_worklog_id = #{oaWorklogId}
+    </delete>
+
+    <delete id="deleteWorklogByIds" parameterType="String">
+        delete from oa_worklog where oa_worklog_id in 
+        <foreach item="oaWorklogId" collection="array" open="(" separator="," close=")">
+            #{oaWorklogId}
+        </foreach>
+    </delete>
+
+    <select id="selectWorklogByUserIdForMain" parameterType="java.lang.Long" resultMap="WorklogResult">
+        SELECT
+            0 searchType,
+            count(a.oa_worklog_id) AS num
+        FROM
+            (
+                SELECT
+                    t.*
+                FROM
+                    oa_worklog t
+                LEFT JOIN oa_worklog_user u ON t.oa_worklog_id = u.worklog_id
+                WHERE
+                    t.del_flag = 0
+        <if test="userId != null "> AND t.create_user_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+                GROUP BY
+                    t.oa_worklog_id
+            ) a
+    </select>
+    
+</mapper>

@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.TaskMapper">
+    
+    <resultMap type="Task" id="TaskResult">
+        <result property="oaTaskId"    column="oa_task_id"    />
+        <result property="taskName"    column="task_name"    />
+        <result property="status"    column="status"    />
+        <result property="importantLevel"    column="important_level"    />
+        <result property="difficultLevel"    column="difficult_level"    />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"    column="end_date"    />
+        <result property="isTeam"    column="is_team"    />
+        <result property="sourceType"    column="source_type"    />
+        <result property="sponsorId"    column="sponsor_id"    />
+        <result property="executorId"    column="executor_id"    />
+        <result property="appraiserId"    column="appraiser_id"    />
+        <result property="content"    column="content"    />
+        <result property="file"    column="file"    />
+        <result property="expiredDay"    column="expired_day"    />
+        <result property="progress"    column="progress"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+
+        <result property="userName"    column="user_name"    />
+        <result property="deptName"    column="dept_name"    />
+        <result property="replyCreateTime"    column="reply_create_time"    />
+        <result property="replyProgress"    column="reply_progress"    />
+        <result property="replyContent"    column="reply_content"    />
+        <result property="userType"    column="user_type"    />
+        <result property="overReason"    column="over_reason"    />
+        <result property="hours"    column="hours"    />
+        <result property="leaderName"    column="leader_name"    />
+
+        <result property="searchType"    column="searchType"    />
+        <result property="num"    column="num"    />
+        <result property="detail"    column="detail"    />
+    </resultMap>
+
+    <sql id="selectTaskVo">
+        select oa_task_id, dept_id, task_name, status, important_level, difficult_level, start_date, end_date, is_team,
+        source_type, sponsor_id, executor_id, appraiser_id, content, file, progress, expired_day, over_reason, detail from oa_task
+    </sql>
+
+    <select id="selectTaskReplyContentList" parameterType="Task" resultMap="TaskResult">
+        SELECT
+            su.user_name,
+            d.dept_name,
+            r.create_time AS reply_create_time,
+            r.hours,
+            r.content AS reply_content,
+            IFNULL(r.progress, 0) AS reply_progress,
+            t.oa_task_id, t.dept_id, t.task_name, t.status, t.important_level, t.difficult_level, t.start_date, t.end_date, t.is_team,
+            t.source_type, t.sponsor_id, t.executor_id, t.appraiser_id, t.content, t.file, t.progress, t.expired_day, t.over_reason,
+            t.detail
+        FROM
+            oa_task t
+        INNER JOIN oa_task_reply r ON t.oa_task_id = r.task_id
+        INNER JOIN sys_user su ON r.user_id = su.user_id
+        INNER JOIN sys_dept d ON t.dept_id=d.dept_id
+        WHERE
+            t.del_flag = 0
+        AND su.del_flag = 0
+        AND d.del_flag = 0
+        AND t.oa_task_id = #{oaTaskId}
+        ORDER BY
+            r.create_time DESC
+    </select>
+
+    <select id="selectTaskProgressByTaskId" parameterType="Long" resultType="java.lang.Integer">
+        SELECT
+            IFNULL(MAX(r.progress),0) as progress,
+            t.oa_task_id,
+            t.sponsor_id
+        FROM
+            oa_task t INNER JOIN
+            oa_task_reply r ON t.oa_task_id=r.task_id
+        WHERE
+            t.oa_task_id = #{oaTaskId}
+    </select>
+
+    <select id="selectTaskList" parameterType="Task" resultMap="TaskResult">
+        SELECT
+        IFNULL(x.user_name,'') as leader_name, t.oa_task_id, t.dept_id, t.task_name, t.status, t.important_level, t.difficult_level, t.start_date, t.end_date, t.is_team, t.source_type, t.sponsor_id,
+          t.executor_id, t.appraiser_id, t.content, t.file, t.progress, t.expired_day, t.over_reason, t.create_time, t.detail
+        FROM
+          oa_task t
+        LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN sys_user su ON t.sponsor_id = su.user_id
+        LEFT JOIN
+        (
+            SELECT GROUP_CONCAT(u.user_name) as user_name, u.dept_id FROM sys_dept d INNER JOIN sys_user u ON d.dept_id=u.dept_id INNER JOIN sys_user_role r ON u.user_id=r.user_id
+            WHERE u.del_flag=0 AND d.del_flag=0 AND r.role_id=3 GROUP BY u.dept_id
+        ) x ON t.dept_id=x.dept_id
+        <!--<if test="deptId != null ">
+            INNER JOIN (
+                SELECT
+                    d.dept_id,
+                    d.dept_name
+                FROM
+                  sys_dept d
+                WHERE
+                  find_in_set(#{deptId}, d.ancestors)
+                    AND d.del_flag = 0 OR d.dept_id = #{deptId}
+            ) a ON t.dept_id = a.dept_id
+        </if>-->
+        <where>
+            t.del_flag = 0
+            <if test="userId != null "> AND u.user_id = #{userId}</if>
+            <if test="userName != null and userName != ''"> AND su.user_name like concat('%', #{userName}, '%')</if>
+            <if test="userType != null ">AND u.user_type = #{userType} </if>
+            <if test="oaTaskId != null ">AND t.oa_task_id = #{oaTaskId} </if>
+            <if test="taskName != null  and taskName != ''"> and t.task_name like concat('%', #{taskName}, '%')</if>
+            <if test="status != null ">
+                <choose>
+                    <when test="status == 1 ">
+                        AND t.status = 1 AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(t.end_date, '%Y-%m-%d')
+                    </when>
+                    <when test="status == 6 ">
+                        AND t.status = 1 AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt; DATE_FORMAT(t.end_date, '%Y-%m-%d')
+                    </when>
+                    <otherwise>
+                        AND t.status = #{status}
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="importantLevel != null "> and t.important_level = #{importantLevel}</if>
+            <if test="difficultLevel != null "> and t.difficult_level = #{difficultLevel}</if>
+            <if test="cStartTime != null and cStartTime != ''">
+                AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+            </if>
+            <if  test="cEndTime != null and cEndTime !='' ">
+                and t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+            </if>
+            <if test="isTeam != null "> and t.is_team = #{isTeam}</if>
+            <if test="deptId != null "> and t.dept_id = #{deptId}</if>
+            <if test="sourceType != null "> and t.source_type = #{sourceType}</if>
+            <if test="sponsorId != null "> and t.sponsor_id = #{sponsorId}</if>
+            <if test="executorId != null and executorId != ''"> and t.executor_id = #{executorId}</if>
+            <if test="appraiserId != null and appraiserId != ''"> and t.appraiser_id = #{appraiserId}</if>
+            <if test="content != null and content != ''"> and t.content = #{content}</if>
+            <if test="file != null  and file != ''"> and t.file = #{file}</if>
+            <if test="expiredDay != null "> and t.expired_day = #{expiredDay}</if>
+            <if test="progress != null and progress != ''"> and t.progress = #{progress}</if>
+        </where>
+        GROUP BY t.oa_task_id
+        ORDER BY t.create_time DESC, t.status ASC
+    </select>
+    
+    <select id="selectTaskById" parameterType="Long" resultMap="TaskResult">
+        select t.oa_task_id, t.dept_id, t.task_name, t.status, t.important_level, t.difficult_level, t.start_date, t.end_date, t.is_team, u.user_name,
+        t.source_type, t.sponsor_id, t.executor_id, t.appraiser_id, t.content, t.file, t.progress, t.expired_day, t.over_reason, t.create_time, t.detail,
+        d.dept_name from
+        oa_task t INNER JOIN sys_dept d ON t.dept_id=d.dept_id INNER JOIN sys_user u ON t.sponsor_id=u.user_id
+        where t.oa_task_id = #{oaTaskId}
+        AND t.del_flag=0 AND d.del_flag=0 AND u.del_flag=0
+    </select>
+        
+    <insert id="insertTask" parameterType="Task" useGeneratedKeys="true" keyProperty="oaTaskId">
+        insert into oa_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskName != null  and taskName != ''">task_name,</if>
+            <if test="status != null ">status,</if>
+            <if test="importantLevel != null ">important_level,</if>
+            <if test="difficultLevel != null ">difficult_level,</if>
+            <if test="startDate != null  and startDate != ''">start_date,</if>
+            <if test="endDate != null  and endDate != ''">end_date,</if>
+            <if test="isTeam != null ">is_team,</if>
+            <if test="sourceType != null ">source_type,</if>
+            <if test="sponsorId != null ">sponsor_id,</if>
+            <if test="executorId != null ">executor_id,</if>
+            <if test="appraiserId != null ">appraiser_id,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="file != null  and file != ''">file,</if>
+            <if test="overReason != null  and overReason != ''">over_reason,</if>
+            <if test="detail != null  and detail != ''">detail,</if>
+            <if test="expiredDay != null ">expired_day,</if>
+            <if test="progress != null  and progress != ''">progress,</if>
+            <if test="deptId != null ">dept_id,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskName != null  and taskName != ''">#{taskName},</if>
+            <if test="status != null ">#{status},</if>
+            <if test="importantLevel != null ">#{importantLevel},</if>
+            <if test="difficultLevel != null ">#{difficultLevel},</if>
+            <if test="startDate != null  and startDate != ''">#{startDate},</if>
+            <if test="endDate != null  and endDate != ''">#{endDate},</if>
+            <if test="isTeam != null ">#{isTeam},</if>
+            <if test="sourceType != null ">#{sourceType},</if>
+            <if test="sponsorId != null ">#{sponsorId},</if>
+            <if test="executorId != null ">#{executorId},</if>
+            <if test="appraiserId != null ">#{appraiserId},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="file != null  and file != ''">#{file},</if>
+            <if test="overReason != null  and overReason != ''">#{overReason},</if>
+            <if test="detail != null  and detail != ''">#{detail},</if>
+            <if test="expiredDay != null ">#{expiredDay},</if>
+            <if test="progress != null  and progress != ''">#{progress},</if>
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTask" parameterType="Task">
+        update oa_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskName != null  and taskName != ''">task_name = #{taskName},</if>
+            <if test="deptId != null ">dept_id = #{deptId},</if>
+            <if test="status != null ">status = #{status},</if>
+            <if test="importantLevel != null ">important_level = #{importantLevel},</if>
+            <if test="difficultLevel != null ">difficult_level = #{difficultLevel},</if>
+            <if test="startDate != null  and startDate != ''">start_date = #{startDate},</if>
+            <if test="endDate != null  and endDate != ''">end_date = #{endDate},</if>
+            <if test="isTeam != null ">is_team = #{isTeam},</if>
+            <if test="sourceType != null ">source_type = #{sourceType},</if>
+            <if test="sponsorId != null ">sponsor_id = #{sponsorId},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="detail != null and detail != ''">detail = #{detail},</if>
+            <if test="file != null  and file != ''">file = #{file},</if>
+            <if test="overReason != null  and overReason != ''">over_reason = #{overReason},</if>
+            <if test="expiredDay != null ">expired_day = #{expiredDay},</if>
+            <if test="progress != null  and progress != ''">progress = #{progress},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_task_id = #{oaTaskId}
+    </update>
+
+    <delete id="deleteTaskById" parameterType="Long">
+        delete from oa_task where oa_task_id = #{oaTaskId}
+    </delete>
+
+    <delete id="deleteTaskByIds" parameterType="String">
+        delete from oa_task where oa_task_id in 
+        <foreach item="oaTaskId" collection="array" open="(" separator="," close=")">
+            #{oaTaskId}
+        </foreach>
+    </delete>
+
+    <select id="selectTaskByUserIdForMain" parameterType="Task" resultMap="TaskResult">
+            SELECT 0 AS searchType, COUNT(a.oa_task_id) AS num
+            FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+            ) a
+        UNION ALL
+            SELECT 1 AS searchType, COUNT(b.oa_task_id) AS num
+            FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+                AND t.STATUS = 1
+                AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &lt;= DATE_FORMAT(t.end_date, '%Y-%m-%d')
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+            ) b
+        UNION ALL
+            SELECT 6 AS searchType, COUNT(f.oa_task_id) AS num
+            FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+                AND t.STATUS = 1
+                AND DATE_FORMAT(SYSDATE(), '%Y-%m-%d') &gt; DATE_FORMAT(t.end_date, '%Y-%m-%d')
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+          ) f
+        UNION ALL
+            SELECT 2 AS searchType, COUNT(c.oa_task_id) AS num
+            FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+                AND t.STATUS = 2
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+            ) c
+        UNION ALL
+            SELECT 3 AS searchType, COUNT(d.oa_task_id) AS num
+            FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+                AND t.STATUS = 3
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+            ) d
+        UNION ALL
+            SELECT 4 AS searchType, COUNT(e.oa_task_id) AS num
+            FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+                AND t.STATUS = 4
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+          ) e
+        UNION ALL
+            SELECT 5 AS searchType, COUNT(f.oa_task_id) AS num
+                FROM (
+                SELECT t.*
+                FROM oa_task t
+                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
+                WHERE t.del_flag = 0
+                AND t.STATUS = 5
+        <if test="userId != null ">AND sponsor_id = #{userId}</if>
+        <if test="cStartTime != null and cStartTime != ''">
+            AND t.create_time &gt;= concat(#{cStartTime},' 00:00:01')
+        </if>
+        <if test="cEndTime != null and cEndTime !='' ">
+            AND t.create_time &lt;= concat(#{cEndTime},' 23:59:59')
+        </if>
+        <if test="userName != null and userName !='' ">
+            AND su.user_name like concat('%', #{userName}, '%')
+        </if>
+                GROUP BY t.oa_task_id
+            ) f
+    </select>
+    
+</mapper>
