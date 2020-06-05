@@ -110,6 +110,10 @@ public class TaskServiceImpl implements ITaskService
         if (ArrayUtil.isNotEmpty(shareUserIds)){
             updateTaskUser(taskId, shareUserIds,4);
         }
+        Long[] leaderIds = task.getLeaderIds();
+        if (ArrayUtil.isNotEmpty(leaderIds)){
+            updateTaskUser(taskId, leaderIds,5);
+        }
 
         task.setUpdateTime(DateUtils.getNowDate());
         return taskMapper.updateTask(task);

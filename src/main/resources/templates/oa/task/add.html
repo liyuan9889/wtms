@@ -67,6 +67,13 @@
                         </td>
                     </tr>
                     <tr>
+                        <td align="right">分管领导：</td>
+                        <td colspan="3">
+                            <select id="leaderId" name="leaderId" class="form-control select2-multiple" multiple required>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
                         <td align="right">负责人：</td>
                         <td colspan="3">
                             <select id="executorId" name="executorId" class="form-control select2-multiple" multiple required>
@@ -152,6 +159,21 @@
                         var deptId = data[index].deptId;
                         var deptName = data[index].deptName;
                         $("#deptId").append("<option value='"+deptId+"'>"+deptName+"</option>");
+                    });
+                }
+            });
+
+            // leader
+            $.ajax({
+                url: user_prefix + "/getAllLeader",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $("#leaderId").append("<option value=''>"+"请选择"+"</option>");
+                    $.each(data, function (index, item) {
+                        var userId = data[index].userId;
+                        var userName = data[index].userName;
+                        $("#leaderId").append("<option value='"+userId+"'>"+userName+"</option>");
                     });
                 }
             });

@@ -315,4 +315,11 @@ public class UserController extends BaseController
         });
     };
 
+    @GetMapping("/getAllLeader")
+    @ResponseBody
+    public List<User> getAllLeader(){
+        List<User> userList = userService.selectAllUserByRoleId(3);
+        return userList;
+    }
+
 }

@@ -72,6 +72,14 @@
                         </td>
                     </tr>
                     <tr>
+                        <td align="right">分管领导：</td>
+                        <td colspan="3">
+                            <select id="leaderId" class="form-control select2-multiple" multiple>
+                                <option th:each="leader:${leaderIdList}" th:value="${leader.userId}" th:text="${leader.userName}" th:selected="${leader.flag}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
                         <td align="right">负责人：</td>
                         <td colspan="3">
                             <select id="executorId" class="form-control select2-multiple" multiple>
@@ -158,6 +166,10 @@
 
         $(function(){
             var deptIdInput = $("#deptIdInput").val();
+            $('#leaderId').select2({
+                placeholder: "请选择分管领导",
+                allowClear: true
+            });
             $('#executorId').select2({
                 placeholder: "请选择执行人",
                 allowClear: true
@@ -232,10 +244,12 @@
                     return
                 }
                 var data = $("#form-task-edit").serializeArray();
+                var leaderIds = $.form.selectSelects("leaderId");
                 var executorIds = $.form.selectSelects("executorId");
                 var appraiserIds = $.form.selectSelects("appraiserId");
                 var partUserIds = $.form.selectSelects("partUserId");
                 var shareUserIds = $.form.selectSelects("shareUserId");
+                data.push({"name": "leaderIds", "value": leaderIds});
                 data.push({"name": "executorIds", "value": executorIds});
                 data.push({"name": "appraiserIds", "value": appraiserIds});
                 data.push({"name": "partUserIds", "value": partUserIds});

@@ -85,6 +85,15 @@ public class UserServiceImpl implements IUserService
     }
 
     /**
+     * 根据角色查询用户
+     * @param roleId
+     * @return
+     */
+    public List<User> selectAllUserByRoleId(Integer roleId) {
+        return userMapper.selectAllUserByRoleId(roleId);
+    }
+
+    /**
      * 根据条件分页查询已分配用户角色列表
      * 
      * @param user 用户信息

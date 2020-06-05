@@ -65,12 +65,12 @@ public class Task extends BaseEntity
 
     /** 评价人 */
     private String appraiserId;
-
     /** 评价人 */
     private String partId;
-
     /** 评价人 */
     private String shareId;
+    /** 领导 */
+    private String leaderId;
     /** 任务详情 */
     private String detail;
 
@@ -102,6 +102,7 @@ public class Task extends BaseEntity
     private Long[] appraiserIds;
     private Long[] partUserIds;
     private Long[] shareUserIds;
+    private Long[] leaderIds;
 
     /** 下发人名字 */
     private String sponsorName;

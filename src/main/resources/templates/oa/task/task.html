@@ -239,7 +239,17 @@
                 },
                 {
                     field : 'executorName',
-                    title : '负责人'
+                    title : '负责人',
+                    formatter: function(value, row, index) {
+                        var executor = row.executorName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.executorName;
+                        }
+
+                    }
                 },
                 // {
                 //     field : 'appraiserName',

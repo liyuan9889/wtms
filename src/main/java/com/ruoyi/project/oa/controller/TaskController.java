@@ -434,6 +434,7 @@ public class TaskController extends BaseController
             String appraiserUserIds = task.getAppraiserId();
             String partUserIds = task.getPartId();
             String shareUserIds = task.getShareId();
+            String leaderIds = task.getLeaderId();
             if (StringUtils.isNotEmpty(executorUserIds)) {
                 String[] executorIds = executorUserIds.split(",");
                 for (String executorId : executorIds) {
@@ -471,6 +472,16 @@ public class TaskController extends BaseController
                     taskUser.setTaskId(taskId);
                     taskUser.setUserId(Long.parseLong(shareUserId));
                     taskUser.setUserType(4);
+                    taskUserList.add(taskUser);
+                }
+            }
+            if (StringUtils.isNotEmpty(leaderIds)) {
+                String[] leaders = leaderIds.split(",");
+                for (String leaderId : leaders) {
+                    TaskUser taskUser = new TaskUser();
+                    taskUser.setTaskId(taskId);
+                    taskUser.setUserId(Long.parseLong(leaderId));
+                    taskUser.setUserType(5);
                     taskUserList.add(taskUser);
                 }
             }
@@ -533,10 +544,12 @@ public class TaskController extends BaseController
         List<User> appraiserIdList = new ArrayList<>();
         List<User> partUserIdList = new ArrayList<>();
         List<User> shareUserIdList = new ArrayList<>();
+        List<User> leaderIdList = new ArrayList<>();
         Task task = taskService.selectTaskById(oaTaskId);
         User user = new User();
         user.setDeptId(task.getDeptId());
         List<User> userList = userService.selectJuniorUserByUser(user);
+        List<User> leaderList = userService.selectAllUserByRoleId(3);
         // 负责人
         TaskUser taskUser1 = new TaskUser();
         taskUser1.setTaskId(oaTaskId);
@@ -593,11 +606,26 @@ public class TaskController extends BaseController
             }
             shareUserIdList.add(us);
         }
+        // leader
+        TaskUser taskUser5 = new TaskUser();
+        taskUser5.setTaskId(oaTaskId);
+        taskUser5.setUserType(5);
+        List<Long> taskUserList5 = taskUserService.selectTaskUserIdList(taskUser5);
+        for (User u : leaderList) {
+            User us = new User();
+            us.setUserId(u.getUserId());
+            us.setUserName(u.getUserName());
+            if (taskUserList5.contains(u.getUserId())) {
+                us.setFlag(true);
+            }
+            leaderIdList.add(us);
+        }
         mmap.put("task", task);
         mmap.put("executorIdList", executorIdList);
         mmap.put("appraiserIdList", appraiserIdList);
         mmap.put("partUserIdList", partUserIdList);
         mmap.put("shareUserIdList", shareUserIdList);
+        mmap.put("leaderIdList", leaderIdList);
         return prefix + "/edit";
     }
 

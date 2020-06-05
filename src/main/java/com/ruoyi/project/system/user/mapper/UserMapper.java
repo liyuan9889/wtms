@@ -27,6 +27,13 @@ public interface UserMapper
     public List<User> selectJuniorUserByUser(User user);
 
     /**
+     * 根据角色查询用户
+     * @param roleId
+     * @return
+     */
+    public List<User> selectAllUserByRoleId(Integer roleId);
+
+    /**
      * 根据条件分页查询未已配用户角色列表
      * 
      * @param user 用户信息
