@@ -47,7 +47,7 @@
                         <tr><td align="right">任务名称：</td><td colspan="3"><span class="roarol_bg" th:text="*{taskName}"></span></td></tr>
                         <tr><td align="right">下发人：</td><td colspan="3"><span class="roarol_bg" th:text="*{userName}"></span></td></tr>
                         <tr><td align="right">创建时间：</td><td colspan="3"><span class="roarol_bg" th:text="*{#dates.format(createTime,'yyyy-MM-dd HH:mm:ss')}"></span></td></tr>
-                        <tr><td align="right">来源：</td><td colspan="3"><span class="roarol_bg" id="laiyuan"></span></td></tr>
+                        <tr><td align="right">来源：</td><td colspan="3"><span class="roarol_bg" th:text="*{source}"></span></td></tr>
                         <tr><td align="right">部门：</td><td colspan="3"><span class="roarol_bg" th:text="*{deptName}"></span></td></tr>
                         <tr>
                             <td align="right">重要程度：</td>
@@ -359,7 +359,7 @@
         });
 
         $(function(){
-            $("#laiyuan").html($("#select2-sourceType-container").attr("title"));
+            // $("#laiyuan").html($("#select2-sourceType-container").attr("title"));
             var importantLevel = $("#importantLevel").val();
             var difficultLevel = $("#difficultLevel").val();
             if (importantLevel == 0){

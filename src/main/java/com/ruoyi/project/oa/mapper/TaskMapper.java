@@ -2,6 +2,7 @@ package com.ruoyi.project.oa.mapper;
 
 import com.ruoyi.project.oa.domain.Task;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,4 +81,11 @@ public interface TaskMapper
      * @return
      */
     public List<Task> selectTaskByUserIdForMain(Task task);
+
+    /**
+     * 查询字典表
+     * @param dictType
+     * @return
+     */
+    public List<String> ajaxSelectSourceType(String dictType);
 }

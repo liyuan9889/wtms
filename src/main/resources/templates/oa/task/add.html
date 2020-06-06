@@ -22,9 +22,12 @@
                     <tr>
                         <td align="right">来源：</td>
                         <td colspan="3">
-                            <select name="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" required>
+                            <!--<select name="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" required>
                                 <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
-                            </select>
+                            </select>-->
+                            <input list="sourceList" id="source" name="source" class="form-control" maxlength="30"/>
+                            <datalist id="sourceList">
+                            </datalist>
                         </td>
                     </tr>
 
@@ -174,6 +177,20 @@
                         var userId = data[index].userId;
                         var userName = data[index].userName;
                         $("#leaderId").append("<option value='"+userId+"'>"+userName+"</option>");
+                    });
+                }
+            });
+
+            // source
+            $.ajax({
+                url: prefix + "/ajaxSelectSourceType",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $("#sourceList").append("<option value=''>"+"请选择"+"</option>");
+                    $.each(data, function (index, item) {
+                        var source = data[index];
+                        $("#sourceList").append("<option value='"+source+"'>"+source+"</option>");
                     });
                 }
             });

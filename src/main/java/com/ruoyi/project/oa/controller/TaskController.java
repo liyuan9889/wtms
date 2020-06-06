@@ -122,8 +122,14 @@ public class TaskController extends BaseController
                 taskO.setSponsorName(userService.selectUserById(taskO.getSponsorId()).getUserName());
                 List<String> executorList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 1);
                 List<String> appraiserList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 2);
+                List<String> partUserList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 3);
+                List<String> shareUserList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 4);
+                List<String> leaderList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 5);
                 taskO.setExecutorName(Joiner.on(",").join(executorList));
                 taskO.setAppraiserName(Joiner.on(",").join(appraiserList));
+                taskO.setPartUserName(Joiner.on(",").join(partUserList));
+                taskO.setShareUserName(Joiner.on(",").join(shareUserList));
+                taskO.setLeaderName(Joiner.on(",").join(leaderList));
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -166,8 +172,14 @@ public class TaskController extends BaseController
                 taskO.setSponsorName(userService.selectUserById(taskO.getSponsorId()).getUserName());
                 List<String> executorList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 1);
                 List<String> appraiserList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 2);
+                List<String> partUserList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 3);
+                List<String> shareUserList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 4);
+                List<String> leaderList = userService.selectUserNameForOaTaskUser(taskO.getOaTaskId(), 5);
                 taskO.setExecutorName(Joiner.on(",").join(executorList));
                 taskO.setAppraiserName(Joiner.on(",").join(appraiserList));
+                taskO.setPartUserName(Joiner.on(",").join(partUserList));
+                taskO.setShareUserName(Joiner.on(",").join(shareUserList));
+                taskO.setLeaderName(Joiner.on(",").join(leaderList));
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -498,7 +510,7 @@ public class TaskController extends BaseController
         List<User> appraiserIdList = new ArrayList<>();
         Task task = taskService.selectTaskById(oaTaskId);
         User user = new User();
-        user.setDeptId(getSysUser().getDeptId());
+        user.setDeptId(task.getDeptId());
         List<User> userList = userService.selectJuniorUserByUser(user);
         // 负责人
         TaskUser taskUser1 = new TaskUser();
@@ -691,6 +703,13 @@ public class TaskController extends BaseController
             }
         }
         return AjaxResult.success(taskResult);
+    }
+
+    @GetMapping("/ajaxSelectSourceType")
+    @ResponseBody
+    public List<String> ajaxSelectSourceType() {
+        List<String> sourceList = taskMapper.ajaxSelectSourceType("oa_source_type");
+        return sourceList;
     }
 
 }

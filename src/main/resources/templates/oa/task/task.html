@@ -15,10 +15,11 @@
                         <ul>
                             <li>
                                 <p>来源：</p>
-                                <select name="sourceType" th:with="type=${@dict.getType('oa_source_type')}">
+                                <!--<select name="sourceType" th:with="type=${@dict.getType('oa_source_type')}">
                                     <option value="">所有</option>
                                     <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
-                                </select>
+                                </select>-->
+                                <input type="text" name="source"/>
                             </li>
                             <li>
                                 <p>任务名称：</p>
@@ -226,16 +227,34 @@
                 //         return $.table.selectDictLabel(isTeamDatas, value);
                 //     }
                 // },
+                // {
+                //     field : 'sourceType',
+                //     title : '来源',
+                //     formatter: function(value, row, index) {
+                //        return $.table.selectDictLabel(sourceTypeDatas, value);
+                //     }
+                // },
                 {
-                    field : 'sourceType', 
-                    title : '来源',
-                    formatter: function(value, row, index) {
-                       return $.table.selectDictLabel(sourceTypeDatas, value);
-                    }
+                    field : 'source',
+                    title : '来源'
                 },
                 {
                     field : 'sponsorName',
                     title : '下发人'
+                },
+                {
+                    field : 'leaderName',
+                    title : '分管领导',
+                    formatter: function(value, row, index) {
+                        var executor = row.leaderName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.leaderName;
+                        }
+
+                    }
                 },
                 {
                     field : 'executorName',
@@ -251,10 +270,48 @@
 
                     }
                 },
-                // {
-                //     field : 'appraiserName',
-                //     title : '评价人'
-                // },
+                {
+                    field : 'partUserName',
+                    title : '参与人',
+                    formatter: function(value, row, index) {
+                        var executor = row.partUserName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.partUserName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'shareUserName',
+                    title : '共享人',
+                    formatter: function(value, row, index) {
+                        var executor = row.shareUserName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.shareUserName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'appraiserName',
+                    title : '评价人',
+                    formatter: function(value, row, index) {
+                        var executor = row.appraiserName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.appraiserName;
+                        }
+
+                    }
+                },
                 {
                     field : 'status',
                     title : '状态',
@@ -270,7 +327,7 @@
                     title: '操作',
                     align: 'center',
                     formatter: function(value, row, index) {
-                        var actions = [],status = row.status;;
+                        var actions = [],status = row.status;
                         var title = "修改督办任务";
                         actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/comment?taskId=' + row.oaTaskId + '\')"><i class="fa fa-search"></i>评价列表</a> ');
                         if (status == 5){

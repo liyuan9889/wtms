@@ -246,8 +246,74 @@
                         title : '下发人'
                     },
                     {
+                        field : 'leaderName',
+                        title : '分管领导',
+                        formatter: function(value, row, index) {
+                            var executor = row.leaderName.split(",");
+                            var executorArr = executor.length;
+                            if (executorArr >= 2){
+                                return executor[0] + "," + executor[1] + "……";
+                            } else {
+                                return row.leaderName;
+                            }
+
+                        }
+                    },
+                    {
                         field : 'executorName',
-                        title : '负责人'
+                        title : '负责人',
+                        formatter: function(value, row, index) {
+                            var executor = row.executorName.split(",");
+                            var executorArr = executor.length;
+                            if (executorArr >= 2){
+                                return executor[0] + "," + executor[1] + "……";
+                            } else {
+                                return row.executorName;
+                            }
+
+                        }
+                    },
+                    {
+                        field : 'partUserName',
+                        title : '参与人',
+                        formatter: function(value, row, index) {
+                            var executor = row.partUserName.split(",");
+                            var executorArr = executor.length;
+                            if (executorArr >= 2){
+                                return executor[0] + "," + executor[1] + "……";
+                            } else {
+                                return row.partUserName;
+                            }
+
+                        }
+                    },
+                    {
+                        field : 'shareUserName',
+                        title : '共享人',
+                        formatter: function(value, row, index) {
+                            var executor = row.shareUserName.split(",");
+                            var executorArr = executor.length;
+                            if (executorArr >= 2){
+                                return executor[0] + "," + executor[1] + "……";
+                            } else {
+                                return row.shareUserName;
+                            }
+
+                        }
+                    },
+                    {
+                        field : 'appraiserName',
+                        title : '评价人',
+                        formatter: function(value, row, index) {
+                            var executor = row.appraiserName.split(",");
+                            var executorArr = executor.length;
+                            if (executorArr >= 2){
+                                return executor[0] + "," + executor[1] + "……";
+                            } else {
+                                return row.appraiserName;
+                            }
+
+                        }
                     },
                     {
                         field : 'status',
@@ -257,10 +323,6 @@
                         }
                     },
                     {
-                        field : 'leaderName',
-                        title : '分管领导'
-                    },
-                    {
                         field : 'createTime',
                         title : '创建时间'
                     },
@@ -268,8 +330,15 @@
                         title: '操作',
                         align: 'center',
                         formatter: function(value, row, index) {
-                            var actions = [];
+                            var actions = [],status = row.status;
+                            var title = "修改督办任务";
                             actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.operate.detail(\'' + row.oaTaskId + '\', \'' + 1200 + '\')"><i class="fa fa-search"></i>查看详情</a> ');
+                            if (status == 5){
+                                actions.push('<a class="btn btn-default btn-xs disabled" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                            }
+                            if (status != 5){
+                                actions.push('<a class="btn btn-info btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                            }
                             return actions.join('');
                         }
                     }]

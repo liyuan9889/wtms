@@ -52,8 +52,12 @@ public class Task extends BaseEntity
     @Excel(name = "集体错失")
     private Integer isTeam;
 
+
+
     /** 来源 */
     @Excel(name = "来源")
+    private String source;
+
     private Integer sourceType;
 
     /** 下发人 */
@@ -110,6 +114,10 @@ public class Task extends BaseEntity
     private String executorName;
     /** 评价人名字 */
     private String appraiserName;
+    /** 共享人名字 */
+    private String shareUserName;
+    /** 参与人名字 */
+    private String partUserName;
 
     /** 部门 */
     private String deptName;

@@ -24,9 +24,10 @@
                     <tr>
                         <td align="right">来源：</td>
                         <td colspan="3">
-                            <select name="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" required>
+                            <!--<select name="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}" required>
                                 <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{sourceType}"></option>
-                            </select>
+                            </select>-->
+                            <input name="source" th:field="*{source}" class="form-control" type="text" readonly>
                         </td>
                     </tr>
 
