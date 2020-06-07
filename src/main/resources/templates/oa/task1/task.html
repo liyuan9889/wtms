@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('工作汇报列表')" />
+    <th:block th:include="include :: header('下拉框')" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: bootstrap-select-css" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <p>来源：</p>
+                                <!--<select name="sourceType" th:with="type=${@dict.getType('oa_source_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>-->
+                                <input type="text" name="source"/>
+                            </li>
+                            <li>
+                                <p>任务名称：</p>
+                                <input type="text" name="taskName"/>
+                            </li>
+                            <li>
+                                <p>状态：</p>
+                                <select name="status" th:with="type=${@dict.getType('oa_task_status')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>重要程度：</p>
+                                <select name="importantLevel" th:with="type=${@dict.getType('oa_important_level')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>困难程度：</p>
+                                <select name="difficultLevel" th:with="type=${@dict.getType('oa_difficult_level')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>组织：</p>
+                                <select id="deptId" name="deptId" onchange="getSubDeptEmp()">
+                                    <option value="">所有</option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>下发人：</p>
+                                <select id="sponsorId" name="sponsorId">
+                                    <option value="">所有</option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>负责人：</p>
+                                <select id="executorId" name="executorId">
+                                    <option value="">所有</option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>评价人：</p>
+                                <select id="appraiserId" name="appraiserId">
+                                    <option value="">所有</option>
+                                </select>
+                            </li>
+                            <li>
+                                <p>开始日期：</p>
+                                <input name="cStartTime" class="time-input" readonly type="text" placeholder="请选择开始日期">
+                            </li>
+                            <li>
+                                <p>截止日期：</p>
+                                <input name="cEndTime" class="time-input" readonly type="text" placeholder="请选择截止日期">
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.modal.open('添加工作汇报', '/oa/task/add', 1200);" shiro:hasPermission="oa:task:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <!--<a class="btn btn-danger multiple disabled" onclick="deleteTask()" shiro:hasPermission="oa:task:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>-->
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="oa:task:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-js" />
+    <th:block th:include="include :: bootstrap-select-js" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('oa:task:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('oa:task:remove')}]];
+        var statusDatas = [[${@dict.getType('oa_task_status')}]];
+        var importantLevelDatas = [[${@dict.getType('oa_important_level')}]];
+        var difficultLevelDatas = [[${@dict.getType('oa_difficult_level')}]];
+        var sourceTypeDatas = [[${@dict.getType('oa_source_type')}]];
+        var isTeamDatas = [[${@dict.getType('oa_is_team')}]];
+        var prefix = ctx + "oa/task1";
+        var work_prefix = ctx + "oa/work";
+        var user_prefix = ctx + "system/user";
+        var dept_prefix = ctx + "system/dept";
+        var userId = [[${userId}]];
+
+        function getSubDeptEmp() {
+            $("#executorId").empty();
+            $("#appraiserId").empty();
+            $("#sponsorId").empty();
+            // 查询下级员工
+            $.ajax({
+                url: user_prefix + "/selectJuniorUserByUser/" + $("#deptId option:selected").val(),
+                data: {},
+                type: "get",
+                dataType: "json",
+                success: function (data) {
+                    $("#executorId").append("<option value=''>"+"所有"+"</option>");
+                    $("#appraiserId").append("<option value=''>"+"所有"+"</option>");
+                    $("#sponsorId").append("<option value=''>"+"所有"+"</option>");
+                    $.each(data, function (index, item) {
+                        var userId = data[index].userId;
+                        var userName = data[index].userName;
+                        $("#executorId").append("<option value='" + userId + "'>" + userName + "</option>");
+                        $("#appraiserId").append("<option value='" + userId + "'>" + userName + "</option>");
+                        $("#sponsorId").append("<option value='" + userId + "'>" + userName + "</option>");
+                    });
+                }
+            })
+        }
+
+        $(function() {
+            // 所属组织
+            $.ajax({
+                url: dept_prefix + "/getDeptListByLoginUser",
+                type:"get",
+                dataType:"json",
+                success:function(data){
+                    $.each(data, function (index, item) {
+                        var deptId = data[index].deptId;
+                        var deptName = data[index].deptName;
+                        $("#deptId").append("<option value='"+deptId+"'>"+deptName+"</option>");
+                    });
+                }
+            });
+
+            // 查询下级员工
+            // $.ajax({
+            //     url: user_prefix + "/selectJuniorUserByUser/100",
+            //     data: {},
+            //     type: "get",
+            //     dataType: "json",
+            //     success: function (data) {
+            //         $.each(data, function (index, item) {
+            //             var userId = data[index].userId;
+            //             var userName = data[index].userName;
+            //             $("#executorId").append("<option value='" + userId + "'>" + userName + "</option>");
+            //         });
+            //     }
+            // })
+
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "工作汇报",
+                search: false,
+                showSearch:false,
+                showColumns:false,
+                showExport:false,
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field : 'oaTaskId',
+                    title : '主键',
+                    visible: false
+                },
+                {
+                    field : 'taskName',
+                    title : '任务名称'
+                },
+                // {
+                //     field : 'importantLevel',
+                //     title : '重要程度',
+                //     formatter: function(value, row, index) {
+                //        return $.table.selectDictLabel(importantLevelDatas, value);
+                //     }
+                // },
+                // {
+                //     field : 'difficultLevel',
+                //     title : '困难程度',
+                //     formatter: function(value, row, index) {
+                //        return $.table.selectDictLabel(difficultLevelDatas, value);
+                //     }
+                // },
+                {
+                    field : 'startDate',
+                    title : '开始日期'
+                },
+                {
+                    field : 'endDate',
+                    title : '截止日期'
+                },
+                // {
+                //     field : 'isTeam',
+                //     title : '集体措施',
+                //     formatter: function(value, row, index) {
+                //         return $.table.selectDictLabel(isTeamDatas, value);
+                //     }
+                // },
+                // {
+                //     field : 'sourceType',
+                //     title : '来源',
+                //     formatter: function(value, row, index) {
+                //        return $.table.selectDictLabel(sourceTypeDatas, value);
+                //     }
+                // },
+                {
+                    field : 'source',
+                    title : '来源'
+                },
+                {
+                    field : 'sponsorName',
+                    title : '下发人'
+                },
+                {
+                    field : 'leaderName',
+                    title : '分管领导',
+                    formatter: function(value, row, index) {
+                        var executor = row.leaderName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.leaderName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'executorName',
+                    title : '负责人',
+                    formatter: function(value, row, index) {
+                        var executor = row.executorName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.executorName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'partUserName',
+                    title : '参与人',
+                    formatter: function(value, row, index) {
+                        var executor = row.partUserName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.partUserName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'shareUserName',
+                    title : '共享人',
+                    formatter: function(value, row, index) {
+                        var executor = row.shareUserName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.shareUserName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'appraiserName',
+                    title : '评价人',
+                    formatter: function(value, row, index) {
+                        var executor = row.appraiserName.split(",");
+                        var executorArr = executor.length;
+                        if (executorArr >= 2){
+                            return executor[0] + "," + executor[1] + "……";
+                        } else {
+                            return row.appraiserName;
+                        }
+
+                    }
+                },
+                {
+                    field : 'status',
+                    title : '状态',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(statusDatas, value);
+                    }
+                },
+                {
+                    field : 'createTime',
+                    title : '创建时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [],status = row.status;
+                        var title = "修改工作汇报";
+                        actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/comment?taskId=' + row.oaTaskId + '\')"><i class="fa fa-search"></i>评价列表</a> ');
+                        if (status == 5){
+                            actions.push('<a class="btn btn-default btn-xs disabled" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                            actions.push('<a class="btn btn-white btn-xs" href="javascript:void(0)" onclick="alertReason(\'' + row.overReason + '\')"><i class="fa fa-search"></i>查看原因</a> ');
+                        }
+                        if (status != 5){
+                            actions.push('<a class="btn btn-info btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                            actions.push('<a class="btn btn-warning btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="overTask(\'' + row.oaTaskId + '\', \'' + row.sponsorId + '\')"><i class="fa fa-close"></i>终结任务</a> ');
+                        }
+
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editTask(\'' + title + '\', \'' + row.sponsorId + '\',  \'' + '/oa/task/edit/' + row.oaTaskId + '\', \'' + 1200 + '\')"><i class="fa fa-edit"></i>编辑任务</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="deleteTask(\'' + row.oaTaskId + '\', \'' + row.sponsorId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+
+        function overTask(taskId, sponsorId){
+            if (userId != sponsorId){
+                $.modal.alertWarning("您无权操作这条数据");
+                return
+            }
+            $.modal.confirm("确认要终结这个任务吗？", function() {
+                $.modal.open("终结原因", prefix + "/toOverTask/"+taskId, '500', '500');
+            })
+
+        }
+
+        function editTask(title, sponsorId, url, width){
+            $.ajax({
+                url: work_prefix + "/isAuthorityOperate",
+                type:"get",
+                data:{sponsorId:sponsorId},
+                dataType:"json",
+                success:function(data){
+                    if (data.code == 0) {
+                        $.modal.open(title, url, width);
+                    } else {
+                        $.modal.alertWarning("您无权操作这条数据");
+                    }
+
+                }
+            });
+
+        }
+
+        function deleteTask(oaTaskId, sponsorId){
+            $.ajax({
+                url: work_prefix + "/isAuthorityOperate",
+                type:"get",
+                data:{sponsorId:sponsorId},
+                dataType:"json",
+                success:function(data){
+                    if (data.code == 0) {
+                        $.operate.remove(oaTaskId)
+                    } else {
+                        $.modal.alertWarning("您无权操作这条数据");
+                    }
+
+                }
+            });
+
+        }
+
+        function alertReason(reason){
+            layer.confirm(reason, {
+                icon: 3,
+                title: "终结原因",
+                btn: ['确认'],
+                btnclass: ['btn btn-primary'],
+            }, function (index) {
+                layer.close(index);
+            });
+        };
+
+    </script>
+</body>
+</html>

@@ -1,11 +1,11 @@
 package com.ruoyi.project.oa.domain;
 
+import com.ruoyi.framework.aspectj.lang.annotation.Excel;
+import com.ruoyi.framework.web.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.ruoyi.framework.aspectj.lang.annotation.Excel;
-import com.ruoyi.framework.web.domain.BaseEntity;
 
 /**
  * 任务督办对象 oa_task
@@ -17,7 +17,7 @@ import com.ruoyi.framework.web.domain.BaseEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Task extends BaseEntity
+public class Task1 extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 

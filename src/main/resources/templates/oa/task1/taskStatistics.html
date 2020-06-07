@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
 <head>
-    <th:block th:include="include :: header('任务督办列表')" />
+    <th:block th:include="include :: header('工作汇报列表')" />
 </head>
 <body class="gray-bg">
 <div class="container-div">
@@ -24,7 +24,7 @@
     var difficultLevelDatas = [[${@dict.getType('oa_difficult_level')}]];
     var sourceTypeDatas = [[${@dict.getType('oa_source_type')}]];
     var isTeamDatas = [[${@dict.getType('oa_is_team')}]];
-    var prefix = ctx + "oa/task";
+    var prefix = ctx + "oa/task1";
 
     $(function() {
         var options = {
@@ -33,7 +33,7 @@
             updateUrl: prefix + "/edit/{id}",
             removeUrl: prefix + "/remove",
             exportUrl: prefix + "/export",
-            modalName: "任务督办",
+            modalName: "工作汇报",
             search: false,
             showSearch:false,
             showColumns:false,

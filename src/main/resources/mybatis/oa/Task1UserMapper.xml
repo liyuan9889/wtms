@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.oa.mapper.Task1UserMapper">
+    
+    <resultMap type="TaskUser" id="TaskUserResult">
+        <result property="oaTaskUserId"    column="oa_task_user_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="userType"    column="user_type"    />
+        <result property="content"    column="content"    />
+        <result property="progress"    column="progress"    />
+        <result property="hours"    column="hours"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTask1UserVo">
+        select oa_task_user_id, task_id, user_id, user_name, user_type, content, progress, hours, create_time, update_time from oa_task_user
+    </sql>
+
+    <select id="selectTask1UserList" parameterType="TaskUser" resultMap="TaskUserResult">
+        <include refid="selectTask1UserVo"/>
+        <where>  
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="userName != null and userName != ''"> and user_name = #{userName}</if>
+            <if test="userType != null "> and user_type = #{userType}</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+            <if test="progress != null  and progress != ''"> and progress = #{progress}</if>
+        </where>
+    </select>
+    
+    <select id="selectTask1UserById" parameterType="Long" resultMap="TaskUserResult">
+        <include refid="selectTask1UserVo"/>
+        where oa_task_user_id = #{oaTaskUserId}
+    </select>
+        
+    <insert id="insertTask1User" parameterType="TaskUser">
+        insert into oa_task_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="oaTaskUserId != null ">oa_task_user_id,</if>
+            <if test="taskId != null ">task_id,</if>
+            <if test="userId != null ">user_id,</if>
+            <if test="userName != null ">user_name,</if>
+            <if test="userType != null ">user_type,</if>
+            <if test="content != null  and content != ''">content,</if>
+            <if test="progress != null ">progress,</if>
+            <if test="hours != null  and hours != ''">hours,</if>
+            <if test="createTime != null ">create_time,</if>
+            <if test="updateTime != null ">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="oaTaskUserId != null ">#{oaTaskUserId},</if>
+            <if test="taskId != null ">#{taskId},</if>
+            <if test="userId != null ">#{userId},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="userType != null ">#{userType},</if>
+            <if test="content != null  and content != ''">#{content},</if>
+            <if test="progress != null ">#{progress},</if>
+            <if test="hours != null  and hours != ''">#{hours},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTask1User" parameterType="TaskUser">
+        update oa_task_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskId != null ">task_id = #{taskId},</if>
+            <if test="userId != null ">user_id = #{userId},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
+            <if test="userType != null ">user_type = #{userType},</if>
+            <if test="content != null  and content != ''">content = #{content},</if>
+            <if test="progress != null ">progress = #{progress},</if>
+            <if test="hours != null  and hours != ''">hours = #{hours},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="updateTime != null ">update_time = #{updateTime},</if>
+        </trim>
+        where oa_task_user_id = #{oaTaskUserId}
+    </update>
+
+    <delete id="deleteTask1UserById" parameterType="Long">
+        delete from oa_task_user where oa_task_user_id = #{oaTaskUserId}
+    </delete>
+
+    <delete id="deleteTask1UserByIds" parameterType="String">
+        delete from oa_task_user where oa_task_user_id in
+        <foreach item="oaTaskUserId" collection="array" open="(" separator="," close=")">
+            #{oaTaskUserId}
+        </foreach>
+    </delete>
+
+    <!-- 批量删除督查任务用户 -->
+    <delete id="deleteTask1UserByOaTask" parameterType="TaskUser">
+        delete from oa_task_user where task_id = #{taskId} and user_type = #{userType}
+    </delete>
+
+    <!-- 批量插入督查任务用户 -->
+    <insert id ="insertTask1UserBatch" parameterType="java.util.List" >
+        insert into oa_task_user
+        (task_id, user_id, user_name, user_type, content, progress, create_time )
+        values
+        <foreach collection ="list" item="taskUser" index= "index" separator =",">
+            (
+            #{taskUser.taskId}, #{taskUser.userId}, #{taskUser.userName}, #{taskUser.userType},
+            #{taskUser.content}, #{taskUser.progress}, sysdate()
+            )
+        </foreach >
+    </insert>
+
+</mapper>
