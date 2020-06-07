@@ -51,9 +51,9 @@
                      <div class="disf" th:object="${forum}">
                          <img src="/img/profile1.jpg" th:src="*{imgUrl==null ? '/img/profile1.jpg':imgUrl}">
                          <div class="pl">
-                             <div th:text="*{title}">豪车论坛</div>
+                             <div th:text="*{title}"></div>
                              <input type="hidden" th:value="*{id}" name="forumId" id="forumId">
-                             <div>创建时间：<span th:text="*{#dates.format(createTime,'yyyy-MM-dd HH:mm:ss')}"></span></div>
+                             <!--<div>创建时间：<span th:text="*{#dates.format(createTime,'yyyy-MM-dd HH:mm:ss')}"></span></div>-->
                              <div>帖子: <span th:text="${messageNum}">0</span></div>
                          </div>
                      </div>

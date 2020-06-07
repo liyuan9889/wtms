@@ -1,79 +1,115 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
 <head>
-    <th:block th:include="include :: header('我的论坛')" />
+    <!--<th:block th:include="include :: header('我的论坛')" />
     <th:block th:include="include :: select2-css" />
-    <th:block th:include="include :: bootstrap-select-css" />
+    <th:block th:include="include :: bootstrap-select-css" />-->
+    <link th:href="@{/forum/css/main00.css}" rel="stylesheet"/>
+    <link th:href="@{/forum/css/ru-ui.css}" rel="stylesheet"/>
 </head>
-<style>
-    .label{
-        padding: 20px 50px;
-        display: inline-block;
-        margin: 0 10px 20px 0 ;
-    }
-    .blog-post-top{
-        padding: 50px 0 120px 0;
-    }
-    .blog-post-meta{
-        padding: 50px 0 30px 0;
-    }
-    .liebiao{
-        display: flex;
-        justify-content: space-between;
-        /* margin-bottom: 20px; */
-        min-height: 30px;
-        align-items: center;
-        padding: 0px 10px 7px 8px;
-        /*border-bottom: solid 1px #d1dade;*/
-    }
-    .liebiao:hover{
-      background-color: #c3c3c3;
-    }
-    .left_td {
-        padding-bottom: 15px;
-        padding-right: 5px;
-        text-align:left;
-        padding-left: 45px;
-    }
-    table tr{
+<body>
+<div class="col-sm-12 search-collapse" style="background: #f4f4f4;">
 
-    }
-    .text-cont {
-        width: 80px;
-        height: 24px;
-        overflow: hidden;
-        whitewhite-space: nowrap;
-        text-overflow: ellipsis;
-    }
-    .pointer{
-        cursor:pointer;
-    }
-    .zuire{
-        height: 30px;
-        background: #d1dade;
-        align-items: center;
-        display: flex;
-        padding-left: 10px;
-        justify-content: space-between;
-    }
-    .divzuire{
-        width: 50%;
-        /*border: solid 1px #d1dade;*/
-        margin-right: 2px;
-    }
-    .gengduo{
-        padding-right: 8px;
-    }
-    .spanPadding{
-        display: inline-block;
-        width: 40px;
-    }
-    .hhh:hover{
-        background: darkgrey;
-    }
-</style>
-<body class="gray-bg">
-<div class="container-div">
+    <div class="jindu_lists" style="border-radius: 15px;">
+        <!--<p class="qielinks">-->
+            <!--<span  th:each="list,listStat : ${deptYw}" th:onclick="'luntanList(\''+${list.deptId}+'\',this)'"  th:text="${list.deptName}">运维班01</span>-->
+            <!--&lt;!&ndash; <span  class="check_qie3">运维班02</span>-->
+             <!--<span>运维班03</span>-->
+             <!--<span>运维班04</span>-->
+             <!--<span>运维班05</span>-->
+             <!--<span>运维班06</span>&ndash;&gt;-->
+            <!--<span th:if="${#lists.isEmpty(deptYw)}">暂无数据</span>-->
+        <!--</p>-->
+        <p style="margin: 0;">&nbsp;&nbsp;&nbsp;&nbsp;最新浏览论坛</p>
+        <p class="biandianZ" id="luntan">
+            <a href="#"  th:each="list,listStat : ${forumReadList}" th:onclick="'query(\''+${list.forumId}+'\',this)'"  th:text="${list.forumTitle}">变电站00</a>
+            <!--<a href="#" class="biand_now">变电站01</a>-->
+            <!--<a href="#">变电站02</a>-->
+            <!--<a href="#">变电站03</a>-->
+            <!--<a href="#">变电站04</a>-->
+            <!--<a href="#">变电站05</a>-->
+            <!--<a href="#">变电站06</a>-->
+        </p>
+    </div>
+
+    <div class="jindu_lists" style="border-radius: 15px; position: relative;">
+        <p class="tieZnum">帖子数量：<b class="cred" id="forumMessageNum" th:text="${forumMessageNum}">0</b>&nbsp;&nbsp;&nbsp;今日新增：<b class="cred"  id="forumMessageAddNum" th:text="${forumMessageAddNum}">0</b></p>
+        <p class="tieZ">&nbsp;&nbsp;
+            <a href="#" class="tieZ_now" onclick="myMessage(0)">
+            <span>
+                <img th:src="@{/forum/img/icon009.png}">
+            </span>
+                发帖
+            </a>
+            <a href="#" onclick="myMessage(1)"><span><img th:src="@{/forum/img/icon009.png}">
+            </span>
+                我的贴</a><a href="#" onclick="myMessage(2)">
+                <span><img th:src="@{/forum/img/icon009.png}"></span>回复贴</a><a href="#" onclick="myMessage(3)"><span><img th:src="@{/forum/img/icon009.png}"></span>收藏贴</a></p>
+        <table border="0" cellspacing="0" cellpadding="0" class="tongzhi_list">
+            <tr>
+                <td width="80" valign="top"><img th:src="@{/forum/img/icon_0223.png}">&nbsp;公告</td>
+                <td valign="top">
+                    <p  th:each="list : ${noticeList}" th:onclick="'queryNotice(\''+${list.forumNoticeId}+'\')'"><a href="#" th:text="${list.title}">暂无数据</a></p>
+                    <!--  <p><a href="#">内容内容内容内容内容内容内容内容</a></p>
+                      <p><a href="#">内容内容内容内容内容内容内容内容</a></p>-->
+                </td>
+                <td width="70" valign="top	"><a href="#" onclick="noticeMore()">更多...</a></td>
+            </tr>
+        </table>
+    </div>
+    <div class="jindu_lists" style="border-radius: 15px;">
+        <p style="margin: 0;">&nbsp;&nbsp;&nbsp;&nbsp;论坛</p>
+        <ul class="luntan_lists" id="luntan_lists">
+            <!--<li>论坛01</li>
+            <li>论坛02</li>
+            <li>论坛03</li>
+            <li>论坛04</li>
+            <li>论坛05</li>-->
+        </ul>
+
+        <table border="0" cellspacing="0" cellpadding="0" width="100%">
+            <tbody style="vertical-align: baseline">
+            <tr>
+                <td width="49%" style="padding-left: 1%;">
+                    <table border="0" cellspacing="0" cellpadding="0" class="qiehanlists" width="100%">
+                        <tr><th align="left">&nbsp;&nbsp;最热</th><th width="40%" colspan="2" align="right" onclick="more(1)">更多...&nbsp;&nbsp;</th></tr>
+                        <tr  th:each="list,listStat :${hotForumMessageList}" th:onclick="'queryMessage(\''+${list.id}+'\')'">
+                            <td align="left">&nbsp;&nbsp;<a href="#" th:text="${list.titile}">测试内容测试内容测试内容</a></td>
+                            <td><img th:src="@{/forum/img/icon018.png}">&nbsp;跟帖：<span th:text="${list.replyNum}">0</span></td>
+                            <td><img th:src="@{/forum/img/icon020.png}">&nbsp;阅读：<span th:text="${list.readNum}">0</span></td>
+                        </tr>
+                        <!--      <tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>
+                              <tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>
+                              <tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>
+                              <tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>
+                              <tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>
+                              <tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                    </table>
+                </td>
+                <td width="49%" style="padding-right: 1%;">
+                    <table border="0" cellspacing="0" cellpadding="0"  class="qiehanlists" width="100%">
+
+                        <tr><th align="left">&nbsp;&nbsp;精品</th><th width="40%" colspan="2" align="right" onclick="more(2)">更多...&nbsp;&nbsp;</th></tr>
+                        <tr  th:each="list,listStat :${newForumMessageList}" th:onclick="'queryMessage(\''+${list.id}+'\')'">
+                            <td align="left">&nbsp;&nbsp;<a href="#" th:text="${list.titile}">测试内容测试内容测试内容</a></td>
+                            <td><img th:src="@{/forum/img/icon018.png}">&nbsp;跟帖：<span th:text="${list.replyNum}">0</span></td>
+                            <td><img th:src="@{/forum/img/icon020.png}">&nbsp;阅读：<span th:text="${list.readNum}">0</span></td>
+                        </tr>
+                        <!--<tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                        <!--<tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                        <!--<tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                        <!--<tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                        <!--<tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                        <!--<tr><td align="left">&nbsp;&nbsp;<a href="#">测试内容测试内容测试内容</a></td><td><img src="img/icon018.png">&nbsp;跟帖：<span>8</span></td><td><img src="img/icon020.png">&nbsp;阅读：<span>17</span></td></tr>-->
+                    </table>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+<!--<div class="container-div">
     <div class="row">
         <div class="col-sm-12 search-collapse">
             <div><h4>最近逛的论坛</h4></div>
@@ -127,7 +163,7 @@
                     </div>
                 </div>
                 <div  class="blog-post-meta" id="forumList">
-                    <!-- 这里是论坛列表-->
+                    &lt;!&ndash; 这里是论坛列表&ndash;&gt;
                 </div>
                 <div style="display: flex">
                     <div class="divzuire">
@@ -159,7 +195,7 @@
 
         </div>
 </div>
-</div>
+</div>-->
 <th:block th:include="include :: footer" />
 <th:block th:include="include :: select2-js" />
 <th:block th:include="include :: bootstrap-select-js" />
@@ -181,10 +217,6 @@
     //查询论坛列表
     function  forumList() {
         var data = {};
-        var title = $("#title").val();
-        if(title){
-            data['title'] = title;
-        }
         //论坛的类型
         data['plateType'] = '2';
         //查询论坛
@@ -195,13 +227,13 @@
             dataType: "json",
             success: function (data) {
                 if(data.code==0){
-                    $("#forumList").empty();
+                    $("#luntan_lists").empty();
                     if(data.rows.length>0){
                         data.rows.forEach(function(element){
-                            $("#forumList").append("<span class='label pointer' onclick='query("+element.id+")'>"+element.title+"</span>");
+                            $("#luntan_lists").append("<li onclick='query("+element.id+")'>"+element.title+"</li>");
                         })
                     }else{
-                        $("#forumList").append("暂无数据");
+                        $("#luntan_lists").append("暂无数据");
                     }
 
                 }
@@ -325,7 +357,14 @@
         });
     }
     //论坛详情
-    function query(param) {
+    function query(param,$event) {
+        //去掉样式
+        if($event){
+            for(i=0;i<$("#luntan").find("a").length;i++){
+                $("#luntan").find("a")[i].setAttribute("style","")
+            }
+            $event.setAttribute("style","background: #35aba0; color: #fff;");
+        }
         var url = ctx + "oa/forumDetails/"+param;
         //如果是移动端，就使用自适应大小弹窗
         var width='';

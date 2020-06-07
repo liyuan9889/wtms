@@ -1,9 +1,9 @@
 package com.ruoyi.project.oa.mapper;
 
-import java.util.List;
-
 import com.ruoyi.project.oa.domain.ForumMessage;
 import com.ruoyi.project.oa.domain.ForumMessageReply;
+
+import java.util.List;
 
 /**
  * 论坛帖子回复Mapper接口
@@ -67,4 +67,6 @@ public interface ForumMessageReplyMapper
      * @return 结果
      */
     public int deleteForumMessageReplyByIds(String[] ids);
+
+
 }

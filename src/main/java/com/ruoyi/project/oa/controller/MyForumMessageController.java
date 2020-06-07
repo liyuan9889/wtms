@@ -16,9 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 我的论坛Controller
@@ -145,7 +143,7 @@ public class MyForumMessageController extends BaseController
         PageHelper.startPage(0, 5);
         modelMap.put("newForumMessageList",forumMessageService.selectClassForumMessageList(forumMessage1));
         //当前用户
-        modelMap.put("userId",ShiroUtils.getSysUser().getUserId());
+        modelMap.put("userId", ShiroUtils.getSysUser().getUserId());
         return prefix + "/class";
     }
 
@@ -181,7 +179,7 @@ public class MyForumMessageController extends BaseController
         PageHelper.startPage(0, 5);
         modelMap.put("newForumMessageList",forumMessageService.selectForumMessageList(forumMessage1));
         //当前用户
-        modelMap.put("userId",ShiroUtils.getSysUser().getUserId());
+        modelMap.put("userId", ShiroUtils.getSysUser().getUserId());
         modelMap.put("plateType","1");
         return prefix + "/substation";
     }

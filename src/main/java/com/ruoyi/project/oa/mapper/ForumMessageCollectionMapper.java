@@ -1,9 +1,9 @@
 package com.ruoyi.project.oa.mapper;
 
-import java.util.List;
-
 import com.ruoyi.project.oa.domain.ForumMessage;
 import com.ruoyi.project.oa.domain.ForumMessageCollection;
+
+import java.util.List;
 
 /**
  * 用户收藏的论坛帖子Mapper接口

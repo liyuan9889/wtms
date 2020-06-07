@@ -1,7 +1,6 @@
 package com.ruoyi.project.oa.service;
 
 
-import com.ruoyi.project.oa.controller.ForumMessageController;
 import com.ruoyi.project.oa.domain.ForumMessage;
 import com.ruoyi.project.oa.domain.ForumMessageCollection;
 

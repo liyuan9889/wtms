@@ -1,13 +1,14 @@
 package com.ruoyi.project.oa.service.impl;
 
-import java.util.List;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.utils.text.Convert;
 import com.ruoyi.project.oa.domain.ForumMessageRead;
 import com.ruoyi.project.oa.mapper.ForumMessageReadMapper;
 import com.ruoyi.project.oa.service.IForumMessageReadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.ruoyi.common.utils.text.Convert;
+
+import java.util.List;
 
 /**
  * 帖子阅读量Service业务层处理

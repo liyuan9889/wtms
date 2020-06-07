@@ -74,4 +74,11 @@ public interface IForumService
      * @return
      */
     public String checkForumUpdateByTitle(String title);
+
+    /**
+     * 获取最近一个月回复的论坛
+     * @param data
+     * @return
+     */
+    public List<Forum> getClassLastMonth(String data, String userId);
 }

@@ -1,8 +1,8 @@
 package com.ruoyi.project.oa.mapper;
 
-import java.util.List;
-
 import com.ruoyi.project.oa.domain.Forum;
+
+import java.util.List;
 
 /**
  * 论坛Mapper接口
@@ -66,4 +66,11 @@ public interface ForumMapper
      * @return
      */
     public Forum selectForumByTitle(String title);
+
+    /**
+     * 获取最近一个月回复的论坛
+     * @param data
+     * @return
+     */
+    public List<Forum> getClassLastMonth(String data, String userId);
 }

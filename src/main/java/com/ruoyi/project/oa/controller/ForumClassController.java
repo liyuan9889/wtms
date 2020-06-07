@@ -4,20 +4,20 @@ import com.github.pagehelper.PageInfo;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.security.ShiroUtils;
 import com.ruoyi.framework.aspectj.lang.annotation.Log;
-import com.ruoyi.framework.aspectj.lang.enums.BusinessType;
 import com.ruoyi.framework.web.controller.BaseController;
 import com.ruoyi.framework.web.domain.AjaxResult;
 import com.ruoyi.project.oa.domain.*;
 import com.ruoyi.project.oa.service.*;
 import com.ruoyi.project.system.dept.domain.Dept;
 import com.ruoyi.project.system.dept.service.IDeptService;
-import com.ruoyi.project.system.user.domain.User;
 import com.ruoyi.project.system.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 
@@ -42,6 +42,9 @@ public class ForumClassController extends BaseController {
 
     @Autowired
     private IForumMessageReadService forumMessageReadService;
+
+    @Autowired
+    private IForumService forumService;
 
     @Autowired
     private IUserService userService;
@@ -349,4 +352,21 @@ public class ForumClassController extends BaseController {
         forumMessage.setStartDate(DateUtils.getDate());
         return AjaxResult.success(forumMessageService.selectClassForumMessageNum(forumMessage));
     }
+
+    /**
+     * 获取最近一个月浏览的论坛
+     * @return
+     */
+    @GetMapping("getLastMonth")
+    @ResponseBody
+    public AjaxResult getLastMonth(){
+        Date date = new Date();//获取当前时间    
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.MONTH, -1);//当前时间前去一个月，即一个月前的时间    
+        //calendar.getTime();//获取一年前的时间，或者一个月前的时间  
+        return  AjaxResult.success(forumService.getClassLastMonth(DateUtils.parseDateToStr("yyyy-MM-dd HH:mm:ss",calendar.getTime()),String.valueOf(ShiroUtils.getUserId())));
+    }
+
+
 }

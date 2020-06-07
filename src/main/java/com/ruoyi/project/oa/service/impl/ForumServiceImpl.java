@@ -1,20 +1,19 @@
 package com.ruoyi.project.oa.service.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.ruoyi.common.constant.UserConstants;
-import com.ruoyi.common.exception.BusinessException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.security.ShiroUtils;
+import com.ruoyi.common.utils.text.Convert;
 import com.ruoyi.project.oa.domain.Forum;
 import com.ruoyi.project.oa.mapper.ForumMapper;
 import com.ruoyi.project.oa.service.IForumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.ruoyi.common.utils.text.Convert;
 import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 论坛Service业务层处理
@@ -158,5 +157,10 @@ public class ForumServiceImpl implements IForumService
             return UserConstants.USER_NAME_NOT_UNIQUE;
         }
         return UserConstants.USER_NAME_UNIQUE;
+    }
+
+    @Override
+    public List<Forum> getClassLastMonth(String data, String userId) {
+        return forumMapper.getClassLastMonth(data,userId);
     }
 }

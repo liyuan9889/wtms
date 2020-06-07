@@ -68,4 +68,5 @@ public interface IForumMessageReplyService
      * @return 结果
      */
     public int deleteForumMessageReplyById(Long id);
+
 }

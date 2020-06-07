@@ -9,7 +9,6 @@ import com.ruoyi.framework.web.controller.BaseController;
 import com.ruoyi.framework.web.domain.AjaxResult;
 import com.ruoyi.framework.web.page.TableDataInfo;
 import com.ruoyi.project.oa.domain.ForumNotice;
-import com.ruoyi.project.oa.domain.Task;
 import com.ruoyi.project.oa.service.IForumNoticeService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,15 +1,15 @@
 package com.ruoyi.project.oa.service.impl;
 
-import java.util.List;
 import com.ruoyi.common.utils.DateUtils;
-import com.ruoyi.project.oa.controller.ForumMessageController;
+import com.ruoyi.common.utils.text.Convert;
 import com.ruoyi.project.oa.domain.ForumMessage;
 import com.ruoyi.project.oa.domain.ForumMessageCollection;
 import com.ruoyi.project.oa.mapper.ForumMessageCollectionMapper;
 import com.ruoyi.project.oa.service.IForumMessageCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.ruoyi.common.utils.text.Convert;
+
+import java.util.List;
 
 /**
  * 用户收藏的论坛帖子Service业务层处理
