@@ -1,6 +1,7 @@
 package com.ruoyi.project.oa.mapper;
 
 import com.ruoyi.project.oa.domain.Forum;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -72,5 +73,5 @@ public interface ForumMapper
      * @param data
      * @return
      */
-    public List<Forum> getClassLastMonth(String data, String userId);
+    public List<Forum> getClassLastMonth(@Param("data") String data, @Param("userId") String userId);
 }

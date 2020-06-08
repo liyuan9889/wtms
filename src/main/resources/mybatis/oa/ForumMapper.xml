@@ -48,7 +48,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where title=#{title}  and status=0
     </select>
 
-    <select id="getClassLastMonth" parameterType="String" resultMap="ForumResult">
+    <select id="getClassLastMonth" parameterType="java.util.HashMap" resultMap="ForumResult">
         SELECT dept_id id,dept_name title FROM sys_dept where dept_id in (SELECT DISTINCT(forum_id) FROM forum_message_reply where create_user=#{userId} and  create_time &gt; #{data});
     </select>
         
