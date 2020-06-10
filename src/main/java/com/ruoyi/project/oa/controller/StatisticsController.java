@@ -3,14 +3,8 @@ package com.ruoyi.project.oa.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.ruoyi.framework.web.controller.BaseController;
 import com.ruoyi.framework.web.domain.AjaxResult;
-import com.ruoyi.project.oa.domain.Task;
-import com.ruoyi.project.oa.domain.Work;
-import com.ruoyi.project.oa.domain.WorkStatistics;
-import com.ruoyi.project.oa.domain.Worklog;
-import com.ruoyi.project.oa.mapper.TaskMapper;
-import com.ruoyi.project.oa.mapper.WorkMapper;
-import com.ruoyi.project.oa.mapper.WorkStatisticsMapper;
-import com.ruoyi.project.oa.mapper.WorklogMapper;
+import com.ruoyi.project.oa.domain.*;
+import com.ruoyi.project.oa.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +32,7 @@ public class StatisticsController extends BaseController {
 
     private final WorkStatisticsMapper workStatisticsMapper;
     private final TaskMapper taskMapper;
+    private final Task1Mapper task1Mapper;
     private final WorkMapper workMapper;
     private final WorklogMapper worklogMapper;
 
@@ -109,27 +104,28 @@ public class StatisticsController extends BaseController {
                                             @RequestParam(value="whoFlag", required = false) String whoFlag) {
         JSONObject jsonObject = new JSONObject();
         Task t = new Task();
-        Work w = new Work();
+        Task1 t1 = new Task1();
+//        Work w = new Work();
         Worklog log = new Worklog();
         if (StringUtils.isNotEmpty(cStartTime) && StringUtils.isNotEmpty(cEndTime)) {
             t.setCStartTime(cStartTime);
             t.setCEndTime(cEndTime);
-            w.setCStartTime(cStartTime);
-            w.setCEndTime(cEndTime);
+            t1.setCStartTime(cStartTime);
+            t1.setCEndTime(cEndTime);
             log.setCStartTime(cStartTime);
             log.setCEndTime(cEndTime);
         }
 
         if (StringUtils.isNotEmpty(userName) && StringUtils.isNotEmpty(userName)) {
             t.setUserName(userName);
-            w.setUserName(userName);
+            t1.setUserName(userName);
             log.setUserName(userName);
         }
 
         if (StringUtils.isNotEmpty(whoFlag) && whoFlag.equals("0")){
             Long userId = getUserId();
             t.setUserId(userId);
-            w.setUserId(userId);
+            t1.setUserId(userId);
             log.setUserId(userId);
         }
 
@@ -162,25 +158,54 @@ public class StatisticsController extends BaseController {
             }
         }
 
-        List<Work> workList = workMapper.selectWorkByUserIdForMain(w);
-        for (Work work : workList) {
-            int searchType = work.getSearchType();
-            int num = work.getNum();
+        List<Task1> task1List = task1Mapper.selectTask1ByUserIdForMain(t1);
+        for (Task1 task : task1List) {
+            int searchType = task.getSearchType();
+            int num = task.getNum();
             switch (searchType) {
                 case 0: // 总数
-                    jsonObject.put("work_totalNum", num);
+                    jsonObject.put("task1_totalNum", num);
                     break;
                 case 1: // 进行中
-                    jsonObject.put("work_proceedNum", num);
+                    jsonObject.put("task1_proceedNum", num);
                     break;
-                case 2: // 已完结
-                    jsonObject.put("work_preparedEvaluatingNum", num);
+                case 2: // 待评价
+                    jsonObject.put("task1_preparedEvaluatingNum", num);
                     break;
-                case 3: // 超期
-                    jsonObject.put("work_expiredNum", num);
+                case 3: // 评价未通过
+                    jsonObject.put("task1_failedNum", num);
+                    break;
+                case 4: // 已完结
+                    jsonObject.put("task1_finishNum", num);
+                    break;
+                case 5: // 已终结
+                    jsonObject.put("task1_overNum", num);
+                    break;
+                case 6: // 超期
+                    jsonObject.put("task1_expiredNum", num);
                     break;
             }
         }
+
+//        List<Work> workList = workMapper.selectWorkByUserIdForMain(w);
+//        for (Work work : workList) {
+//            int searchType = work.getSearchType();
+//            int num = work.getNum();
+//            switch (searchType) {
+//                case 0: // 总数
+//                    jsonObject.put("work_totalNum", num);
+//                    break;
+//                case 1: // 进行中
+//                    jsonObject.put("work_proceedNum", num);
+//                    break;
+//                case 2: // 已完结
+//                    jsonObject.put("work_preparedEvaluatingNum", num);
+//                    break;
+//                case 3: // 超期
+//                    jsonObject.put("work_expiredNum", num);
+//                    break;
+//            }
+//        }
 
         List<Worklog> worklogList = worklogMapper.selectWorklogByUserIdForMain(log);
         for (Worklog worklog : worklogList) {

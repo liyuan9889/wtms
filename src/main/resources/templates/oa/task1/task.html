@@ -88,13 +88,13 @@
             </div>
 
             <div class="btn-group-sm" id="toolbar" role="group">
-                <a class="btn btn-success" onclick="$.modal.open('添加工作汇报', '/oa/task/add', 1200);" shiro:hasPermission="oa:task:add">
+                <a class="btn btn-success" onclick="$.modal.open('添加工作汇报', '/oa/task1/add', 1200);" shiro:hasPermission="oa:task1:add">
                     <i class="fa fa-plus"></i> 添加
                 </a>
                 <!--<a class="btn btn-danger multiple disabled" onclick="deleteTask()" shiro:hasPermission="oa:task:remove">
                     <i class="fa fa-remove"></i> 删除
                 </a>-->
-                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="oa:task:export">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="oa:task1:export">
                     <i class="fa fa-download"></i> 导出
                 </a>
             </div>
@@ -331,15 +331,15 @@
                         var title = "修改工作汇报";
                         actions.push('<a class="btn btn-toolbar btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/comment?taskId=' + row.oaTaskId + '\')"><i class="fa fa-search"></i>评价列表</a> ');
                         if (status == 5){
-                            actions.push('<a class="btn btn-default btn-xs disabled" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                            actions.push('<a class="btn btn-default btn-xs disabled" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task1/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
                             actions.push('<a class="btn btn-white btn-xs" href="javascript:void(0)" onclick="alertReason(\'' + row.overReason + '\')"><i class="fa fa-search"></i>查看原因</a> ');
                         }
                         if (status != 5){
-                            actions.push('<a class="btn btn-info btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
+                            actions.push('<a class="btn btn-info btn-xs" href="javascript:void(0)" onclick="$.modal.openTab(\'' + title + '\', \'' + '/oa/task1/toFeedBack/1/' + row.oaTaskId + '\')"><i class="fa fa-paper-plane-o"></i>汇报</a> ');
                             actions.push('<a class="btn btn-warning btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="overTask(\'' + row.oaTaskId + '\', \'' + row.sponsorId + '\')"><i class="fa fa-close"></i>终结任务</a> ');
                         }
 
-                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editTask(\'' + title + '\', \'' + row.sponsorId + '\',  \'' + '/oa/task/edit/' + row.oaTaskId + '\', \'' + 1200 + '\')"><i class="fa fa-edit"></i>编辑任务</a> ');
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editTask(\'' + title + '\', \'' + row.sponsorId + '\',  \'' + '/oa/task1/edit/' + row.oaTaskId + '\', \'' + 1200 + '\')"><i class="fa fa-edit"></i>编辑任务</a> ');
                         actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="deleteTask(\'' + row.oaTaskId + '\', \'' + row.sponsorId + '\')"><i class="fa fa-remove"></i>删除</a>');
                         return actions.join('');
                     }

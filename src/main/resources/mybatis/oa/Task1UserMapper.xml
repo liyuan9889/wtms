@@ -4,7 +4,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.project.oa.mapper.Task1UserMapper">
     
-    <resultMap type="TaskUser" id="TaskUserResult">
+    <resultMap type="Task1User" id="TaskUserResult">
         <result property="oaTaskUserId"    column="oa_task_user_id"    />
         <result property="taskId"    column="task_id"    />
         <result property="userId"    column="user_id"    />
@@ -18,10 +18,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectTask1UserVo">
-        select oa_task_user_id, task_id, user_id, user_name, user_type, content, progress, hours, create_time, update_time from oa_task_user
+        select oa_task_user_id, task_id, user_id, user_name, user_type, content, progress, hours, create_time, update_time from oa_task1_user
     </sql>
 
-    <select id="selectTask1UserList" parameterType="TaskUser" resultMap="TaskUserResult">
+    <select id="selectTask1UserList" parameterType="Task1User" resultMap="TaskUserResult">
         <include refid="selectTask1UserVo"/>
         <where>  
             <if test="taskId != null "> and task_id = #{taskId}</if>
@@ -38,8 +38,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where oa_task_user_id = #{oaTaskUserId}
     </select>
         
-    <insert id="insertTask1User" parameterType="TaskUser">
-        insert into oa_task_user
+    <insert id="insertTask1User" parameterType="Task1User">
+        insert into oa_task1_user
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="oaTaskUserId != null ">oa_task_user_id,</if>
             <if test="taskId != null ">task_id,</if>
@@ -66,8 +66,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
     </insert>
 
-    <update id="updateTask1User" parameterType="TaskUser">
-        update oa_task_user
+    <update id="updateTask1User" parameterType="Task1User">
+        update oa_task1_user
         <trim prefix="SET" suffixOverrides=",">
             <if test="taskId != null ">task_id = #{taskId},</if>
             <if test="userId != null ">user_id = #{userId},</if>
@@ -83,24 +83,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteTask1UserById" parameterType="Long">
-        delete from oa_task_user where oa_task_user_id = #{oaTaskUserId}
+        delete from oa_task1_user where oa_task_user_id = #{oaTaskUserId}
     </delete>
 
     <delete id="deleteTask1UserByIds" parameterType="String">
-        delete from oa_task_user where oa_task_user_id in
+        delete from oa_task1_user where oa_task_user_id in
         <foreach item="oaTaskUserId" collection="array" open="(" separator="," close=")">
             #{oaTaskUserId}
         </foreach>
     </delete>
 
     <!-- 批量删除督查任务用户 -->
-    <delete id="deleteTask1UserByOaTask" parameterType="TaskUser">
-        delete from oa_task_user where task_id = #{taskId} and user_type = #{userType}
+    <delete id="deleteTask1UserByOaTask" parameterType="Task1User">
+        delete from oa_task1_user where task_id = #{taskId} and user_type = #{userType}
     </delete>
 
     <!-- 批量插入督查任务用户 -->
     <insert id ="insertTask1UserBatch" parameterType="java.util.List" >
-        insert into oa_task_user
+        insert into oa_task1_user
         (task_id, user_id, user_name, user_type, content, progress, create_time )
         values
         <foreach collection ="list" item="taskUser" index= "index" separator =",">

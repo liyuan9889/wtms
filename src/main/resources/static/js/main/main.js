@@ -126,10 +126,17 @@ function allData() {
             $("#task_finishNum").html(result.task_finishNum);
             $("#task_overNum").html(result.task_overNum);
             $("#task_expiredNum").html(result.task_expiredNum);
-            $("#work_totalNum").html(result.work_totalNum);
-            $("#work_proceedNum").html(result.work_proceedNum);
-            $("#work_preparedEvaluatingNum").html(result.work_preparedEvaluatingNum);
-            $("#work_expiredNum").html(result.work_expiredNum);
+            // $("#work_totalNum").html(result.work_totalNum);
+            // $("#work_proceedNum").html(result.work_proceedNum);
+            // $("#work_preparedEvaluatingNum").html(result.work_preparedEvaluatingNum);
+            // $("#work_expiredNum").html(result.work_expiredNum);
+            $("#task1_totalNum").html(result.task1_totalNum);
+            $("#task1_proceedNum").html(result.task1_proceedNum);
+            $("#task1_preparedEvaluatingNum").html(result.task1_preparedEvaluatingNum);
+            $("#task1_failedNum").html(result.task1_failedNum);
+            $("#task1_finishNum").html(result.task1_finishNum);
+            $("#task1_overNum").html(result.task1_overNum);
+            $("#task1_expiredNum").html(result.task1_expiredNum);
             $("#worklog_totalNum").html(result.worklog_totalNum);
         }
     })
@@ -168,10 +175,17 @@ function searchDataByType () {
             $("#task_finishNum").html(result.task_finishNum);
             $("#task_overNum").html(result.task_overNum);
             $("#task_expiredNum").html(result.task_expiredNum);
-            $("#work_totalNum").html(result.work_totalNum);
-            $("#work_proceedNum").html(result.work_proceedNum);
-            $("#work_preparedEvaluatingNum").html(result.work_preparedEvaluatingNum);
-            $("#work_expiredNum").html(result.work_expiredNum);
+            // $("#work_totalNum").html(result.work_totalNum);
+            // $("#work_proceedNum").html(result.work_proceedNum);
+            // $("#work_preparedEvaluatingNum").html(result.work_preparedEvaluatingNum);
+            // $("#work_expiredNum").html(result.work_expiredNum);
+            $("#task1_totalNum").html(result.task1_totalNum);
+            $("#task1_proceedNum").html(result.task_proceedNum);
+            $("#task1_preparedEvaluatingNum").html(result.task1_preparedEvaluatingNum);
+            $("#task1_failedNum").html(result.task1_failedNum);
+            $("#task1_finishNum").html(result.task1_finishNum);
+            $("#task1_overNum").html(result.task1_overNum);
+            $("#task1_expiredNum").html(result.task1_expiredNum);
             $("#worklog_totalNum").html(result.worklog_totalNum);
         }
     })
@@ -222,10 +236,17 @@ function searchDataByTimeSection (searchType) {
             $("#task_finishNum").html(result.task_finishNum);
             $("#task_overNum").html(result.task_overNum);
             $("#task_expiredNum").html(result.task_expiredNum);
-            $("#work_totalNum").html(result.work_totalNum);
-            $("#work_proceedNum").html(result.work_proceedNum);
-            $("#work_preparedEvaluatingNum").html(result.work_preparedEvaluatingNum);
-            $("#work_expiredNum").html(result.work_expiredNum);
+            // $("#work_totalNum").html(result.work_totalNum);
+            // $("#work_proceedNum").html(result.work_proceedNum);
+            // $("#work_preparedEvaluatingNum").html(result.work_preparedEvaluatingNum);
+            // $("#work_expiredNum").html(result.work_expiredNum);
+            $("#task1_totalNum").html(result.task1_totalNum);
+            $("#task1_proceedNum").html(result.task1_proceedNum);
+            $("#task1_preparedEvaluatingNum").html(result.task1_preparedEvaluatingNum);
+            $("#task1_failedNum").html(result.task1_failedNum);
+            $("#task1_finishNum").html(result.task1_finishNum);
+            $("#task1_overNum").html(result.task1_overNum);
+            $("#task1_expiredNum").html(result.task1_expiredNum);
             $("#worklog_totalNum").html(result.worklog_totalNum);
         }
     })

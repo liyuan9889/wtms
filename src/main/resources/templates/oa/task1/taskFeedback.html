@@ -30,7 +30,7 @@
 
             <div class="col-sm-12 search-collapse" style="background: #f4f4f4;">
                 <h6 class="tk_showtit">任务详情</h6>
-                <div class="tk_showtab" th:object="${task}">
+                <div class="tk_showtab" th:object="${task1}">
                     <input name="oaTaskId" id="oaTaskId" th:field="*{oaTaskId}" type="hidden">
                     <div style="display: none">
                         <select id="sourceType" class="form-control m-b" th:with="type=${@dict.getType('oa_source_type')}">

@@ -508,10 +508,14 @@ public class TaskController extends BaseController
     {
         List<User> executorIdList = new ArrayList<>();
         List<User> appraiserIdList = new ArrayList<>();
+        List<User> partUserIdList = new ArrayList<>();
+        List<User> shareUserIdList = new ArrayList<>();
+        List<User> leaderIdList = new ArrayList<>();
         Task task = taskService.selectTaskById(oaTaskId);
         User user = new User();
         user.setDeptId(task.getDeptId());
         List<User> userList = userService.selectJuniorUserByUser(user);
+        List<User> leaderList = userService.selectAllUserByRoleId(3);
         // 负责人
         TaskUser taskUser1 = new TaskUser();
         taskUser1.setTaskId(oaTaskId);
@@ -540,9 +544,54 @@ public class TaskController extends BaseController
             }
             appraiserIdList.add(us);
         }
+        // 参与人
+        TaskUser taskUser3 = new TaskUser();
+        taskUser3.setTaskId(oaTaskId);
+        taskUser3.setUserType(3);
+        List<Long> taskUserList3 = taskUserService.selectTaskUserIdList(taskUser3);
+        for (User u : userList) {
+            User us = new User();
+            us.setUserId(u.getUserId());
+            us.setUserName(u.getUserName());
+            if (taskUserList3.contains(u.getUserId())) {
+                us.setFlag(true);
+            }
+            partUserIdList.add(us);
+        }
+        // 共享人
+        TaskUser taskUser4 = new TaskUser();
+        taskUser4.setTaskId(oaTaskId);
+        taskUser4.setUserType(4);
+        List<Long> taskUserList4 = taskUserService.selectTaskUserIdList(taskUser4);
+        for (User u : userList) {
+            User us = new User();
+            us.setUserId(u.getUserId());
+            us.setUserName(u.getUserName());
+            if (taskUserList4.contains(u.getUserId())) {
+                us.setFlag(true);
+            }
+            shareUserIdList.add(us);
+        }
+        // leader
+        TaskUser taskUser5 = new TaskUser();
+        taskUser5.setTaskId(oaTaskId);
+        taskUser5.setUserType(5);
+        List<Long> taskUserList5 = taskUserService.selectTaskUserIdList(taskUser5);
+        for (User u : leaderList) {
+            User us = new User();
+            us.setUserId(u.getUserId());
+            us.setUserName(u.getUserName());
+            if (taskUserList5.contains(u.getUserId())) {
+                us.setFlag(true);
+            }
+            leaderIdList.add(us);
+        }
         mmap.put("task", task);
         mmap.put("executorIdList", executorIdList);
         mmap.put("appraiserIdList", appraiserIdList);
+        mmap.put("partUserIdList", partUserIdList);
+        mmap.put("shareUserIdList", shareUserIdList);
+        mmap.put("leaderIdList", leaderIdList);
         return prefix + "/detail";
     }
 

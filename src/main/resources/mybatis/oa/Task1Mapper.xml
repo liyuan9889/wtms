@@ -59,7 +59,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             t.detail
         FROM
             oa_task1 t
-        INNER JOIN oa_task_reply r ON t.oa_task_id = r.task_id
+        INNER JOIN oa_task1_reply r ON t.oa_task_id = r.task_id
         INNER JOIN sys_user su ON r.user_id = su.user_id
         INNER JOIN sys_dept d ON t.dept_id=d.dept_id
         WHERE
@@ -78,7 +78,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             t.sponsor_id
         FROM
             oa_task1 t INNER JOIN
-            oa_task_reply r ON t.oa_task_id=r.task_id
+            oa_task1_reply r ON t.oa_task_id=r.task_id
         WHERE
             t.oa_task_id = #{oaTaskId}
     </select>
@@ -89,7 +89,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         t.source, t.source_type, t.sponsor_id, t.executor_id, t.appraiser_id, t.content, t.file, t.progress, t.expired_day, t.over_reason, t.create_time, t.detail
         FROM
           oa_task1 t
-        LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+        LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
         LEFT JOIN sys_user su ON t.sponsor_id = su.user_id
         LEFT JOIN
         (
@@ -252,7 +252,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
                 LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
         <if test="userId != null ">AND sponsor_id = #{userId}</if>
@@ -272,7 +272,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
                 LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
                 AND t.STATUS = 1
@@ -294,7 +294,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
         LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
                 AND t.STATUS = 1
@@ -316,7 +316,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
         LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
                 AND t.STATUS = 2
@@ -337,7 +337,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
         LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
                 AND t.STATUS = 3
@@ -358,7 +358,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
         LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
                 AND t.STATUS = 4
@@ -379,7 +379,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 FROM (
                 SELECT t.*
                 FROM oa_task1 t
-                LEFT JOIN oa_task_user u ON t.oa_task_id = u.task_id
+                LEFT JOIN oa_task1_user u ON t.oa_task_id = u.task_id
         LEFT JOIN sys_user su ON t.sponsor_id=su.user_id
                 WHERE t.del_flag = 0
                 AND t.STATUS = 5
